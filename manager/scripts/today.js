@@ -292,8 +292,49 @@ function displayDiaries(diaries) {
   
   console.log('开始渲染日记卡片...');
   
-  // 渲染所有日记卡片
-  feed.innerHTML = diaries.map((diary, index) => renderDiaryCard(diary, index)).join('');
+  // 渲染所有日记卡片（确保每个都有评论功能）
+  feed.innerHTML = diaries.map((diary, index) => {
+    const diaryId = `${diary.date}-${diary.author}`;
+    
+    return `
+      <div class="diary-card">
+        <div class="diary-header">
+          <div class="diary-author">
+            <div class="author-avatar">${diary.author.charAt(0)}</div>
+            <div class="author-info">
+              <div class="author-name">${diary.author}</div>
+              <div class="diary-time">${formatDate(diary.date)}</div>
+            </div>
+          </div>
+          <div class="diary-actions">
+            <button class="diary-action-btn" onclick="exportDiary('${diary.date}', '${diary.author}')" title="导出">
+              <i class="ri-download-2-line"></i>
+            </button>
+          </div>
+        </div>
+        
+        <h3 class="diary-title">${diary.title}</h3>
+        <div class="diary-content">${diary.content}</div>
+        
+        <div class="diary-comments" id="comments-${diaryId}">
+          <div class="comments-header">
+            <div class="comments-title">
+              <i class="ri-chat-3-line"></i>
+              评论
+              <span class="comment-count">${(commentsData[diaryId] || []).length}</span>
+            </div>
+            <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+              <i class="ri-add-line"></i>
+              添加评论
+            </button>
+          </div>
+          <div class="comment-list">
+            <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
   
   console.log('日记卡片渲染完成，开始更新评论显示...');
   
@@ -465,54 +506,8 @@ function refreshFeed() {
     }, 500);
   }
   
-  // 加载真实日记，但确保评论功能始终显示
+  // 重新加载日记（现在所有日记都会包含评论功能）
   loadTodayDiaries();
-  
-  // 如果加载后没有日记，再次显示测试内容
-  setTimeout(() => {
-    const feed = document.getElementById('diary-feed');
-    if (feed && !feed.innerHTML.includes('diary-comments')) {
-      console.log('刷新后没有评论功能，重新注入测试内容');
-      feed.innerHTML = `
-        <div class="diary-card">
-          <div class="diary-header">
-            <div class="diary-author">
-              <div class="author-avatar">赵</div>
-              <div class="author-info">
-                <div class="author-name">赵涵</div>
-                <div class="diary-time">${todayStr()}</div>
-              </div>
-            </div>
-            <div class="diary-actions">
-              <button class="diary-action-btn" title="导出">
-                <i class="ri-download-2-line"></i>
-              </button>
-            </div>
-          </div>
-          
-          <h3 class="diary-title">测试日记</h3>
-          <div class="diary-content">这是一个测试日记，用于展示评论功能。</div>
-          
-          <div class="diary-comments" id="comments-test">
-            <div class="comments-header">
-              <div class="comments-title">
-                <i class="ri-chat-3-line"></i>
-                评论
-                <span class="comment-count">0</span>
-              </div>
-              <button class="add-comment-btn" onclick="alert('评论功能测试！')">
-                <i class="ri-add-line"></i>
-                添加评论
-              </button>
-            </div>
-            <div class="comment-list">
-              <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-  }, 3000);
 }
 
 // 页面加载时执行
