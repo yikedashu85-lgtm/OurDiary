@@ -1,11 +1,10 @@
-// Token 管理
-const TOKEN_STORAGE_KEY = 'github_token';
+// 今天页面专用变量
 const owner = "yikedashu85-lgtm";
 const repo = "OurDiary";
 
-// 获取保存的 token
+// 获取保存的 token（使用main.js中的函数）
 function getToken() {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
+  return localStorage.getItem('github_token');
 }
 
 // 加密/解密工具函数
