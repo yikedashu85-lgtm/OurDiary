@@ -100,6 +100,25 @@ function decryptContent(encryptedContent, keyHash) {
   }
 }
 
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+  notification.style.cssText = [
+    'position:fixed',
+    'top:20px',
+    'right:20px',
+    'background:var(--primary-color)',
+    'color:#fff',
+    'padding:12px 16px',
+    'border-radius:12px',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.12)',
+    'z-index:3000'
+  ].join(';');
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 2000);
+}
+
 // 导出下拉菜单
 function toggleExportDropdown() {
   const dropdown = document.getElementById('exportDropdown');
@@ -215,10 +234,7 @@ async function uploadToGitHub() {
     uploadBtn.disabled = false;
 
     if(res.ok) {
-      alert("保存成功！\n\n你可以在「今天的事」页面查看今天的日记，或在「日记库」页面查看所有日记。");
-      if (confirm("是否前往「今天的事」页面查看？")) {
-        window.location.href = 'today.html';
-      }
+      showNotification('保存成功');
     } else {
       const err = await res.json();
       alert("保存失败: " + JSON.stringify(err));
