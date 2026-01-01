@@ -67,15 +67,15 @@
                 <i class="ri-arrow-down-s-line"></i>
               </button>
               <div id="exportDropdown" class="dropdown-menu">
-                <a href="#" onclick="exportAll('md'); return false;">
+                <a href="#" onclick="openExportSelection('md'); return false;">
                   <i class="ri-markdown-line"></i>
                   全部导出为 Markdown
                 </a>
-                <a href="#" onclick="exportAll('txt'); return false;">
+                <a href="#" onclick="openExportSelection('txt'); return false;">
                   <i class="ri-file-text-line"></i>
                   全部导出为文本
                 </a>
-                <a href="#" onclick="exportAll('pdf'); return false;">
+                <a href="#" onclick="openExportSelection('pdf'); return false;">
                   <i class="ri-file-pdf-line"></i>
                   全部导出为 PDF
                 </a>
@@ -115,6 +115,60 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="hideTokenModal()">取消</button>
         <button class="btn btn-primary" onclick="saveToken()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="commentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💬 添加评论</h3>
+        <button class="modal-close" onclick="hideCommentModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="commentAuthor" class="form-label">评论者</label>
+          <select id="commentAuthor" class="form-select">
+            <option value="赵涵">赵涵</option>
+            <option value="赵卓然">卓然</option>
+            <option value="李昊叡">昊叡</option>
+            <option value="朱皓琳">皓琳</option>
+            <option value="郭菲菲">菲菲</option>
+            <option value="郭子怡">子怡</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="commentContent" class="form-label">评论内容</label>
+          <textarea id="commentContent" class="form-textarea" placeholder="写下你的评论..." rows="4"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideCommentModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitComment()">发表评论</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportSelectModal" class="modal">
+    <div class="modal-content export-select-modal">
+      <div class="modal-header">
+        <h3>📦 选择要导出的日记</h3>
+        <button class="modal-close" onclick="hideExportSelectModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="export-select-actions">
+          <button class="btn btn-secondary" onclick="selectAllExportItems()">全选</button>
+          <button class="btn btn-secondary" onclick="deselectAllExportItems()">全不选</button>
+        </div>
+        <div id="exportSelectList" class="export-select-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideExportSelectModal()">取消</button>
+        <button class="btn btn-primary" onclick="confirmExportSelection()">导出所选</button>
       </div>
     </div>
   </div>

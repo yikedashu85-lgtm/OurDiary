@@ -4,9 +4,79 @@ const repo = "OurDiary";
 const diaryList = document.getElementById('diary-list');
 let allDiaries = [];
 
+let commentsData = {};
+let currentDiaryId = null;
+
+let pendingExportFormat = null;
+
 // 获取保存的 token（使用main.js中的函数）
 function getToken() {
   return localStorage.getItem('github_token');
+}
+
+function toSafeId(input) {
+  try {
+    const bytes = unescape(encodeURIComponent(String(input)));
+    const base64 = btoa(bytes);
+    return base64.replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  } catch (e) {
+    return String(input).replace(/[^a-zA-Z0-9_-]/g, '_');
+  }
+}
+
+function getDiaryCommentId(diary) {
+  const raw = (diary.filename || '').replace(/\.md$/i, '');
+  return toSafeId(raw || `${diary.date}-${diary.author}`);
+}
+
+function loadCommentsData() {
+  const saved = localStorage.getItem('diary_comments');
+  if (saved) {
+    try {
+      commentsData = JSON.parse(saved) || {};
+    } catch (e) {
+      commentsData = {};
+    }
+  }
+}
+
+function persistCommentsData() {
+  localStorage.setItem('diary_comments', JSON.stringify(commentsData));
+}
+
+function formatCommentTime(timeStr) {
+  const date = new Date(timeStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+
+  if (diffMins < 1) {
+    return '刚刚';
+  } else if (diffMins < 60) {
+    return `${diffMins}分钟前`;
+  } else if (diffMins < 1440) {
+    return `${Math.floor(diffMins / 60)}小时前`;
+  }
+  return date.toLocaleDateString('zh-CN');
+}
+
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+  notification.style.cssText = [
+    'position:fixed',
+    'top:20px',
+    'right:20px',
+    'background:var(--primary-color)',
+    'color:#fff',
+    'padding:12px 16px',
+    'border-radius:12px',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.12)',
+    'z-index:3000'
+  ].join(';');
+  document.body.appendChild(notification);
+  setTimeout(() => notification.remove(), 2500);
 }
 
 // 加密/解密工具函数
@@ -168,7 +238,10 @@ function renderDiaries() {
     const authorInitial = diary.author.charAt(0);
     
     // 格式化日期
-    const dateStr = diary.date.split('T')[0];
+    const dateStr = String(diary.date || '').split('T')[0];
+
+    const diaryId = getDiaryCommentId(diary);
+    const commentCount = (commentsData[diaryId] || []).length;
     
     card.innerHTML = `
       <div class="diary-header">
@@ -192,21 +265,42 @@ function renderDiaries() {
       <div class="diary-content" id="content-${index}" style="display: none;">
         ${marked.parse(diary.content)}
       </div>
+      <div class="diary-comments" id="comments-${diaryId}" style="display: none;">
+        <div class="comments-header">
+          <div class="comments-title">
+            <i class="ri-chat-3-line"></i>
+            评论
+            <span class="comment-count">${commentCount}</span>
+          </div>
+          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+            <i class="ri-add-line"></i>
+            添加评论
+          </button>
+        </div>
+        <div class="comment-list"></div>
+      </div>
     `;
     
     diaryList.appendChild(card);
+
+    updateCommentsDisplay(diaryId);
   });
 }
 
 // 切换日记展开/收起
 function toggleDiary(index) {
   const content = document.getElementById(`content-${index}`);
+  const diary = allDiaries[index];
+  const diaryId = diary ? getDiaryCommentId(diary) : null;
+  const comments = diaryId ? document.getElementById(`comments-${diaryId}`) : null;
   const isShowing = content.style.display !== 'none';
   
   if (isShowing) {
     content.style.display = 'none';
+    if (comments) comments.style.display = 'none';
   } else {
     content.style.display = 'block';
+    if (comments) comments.style.display = 'block';
   }
 }
 
@@ -215,17 +309,22 @@ function exportSingleDiary(index, format) {
   const diary = allDiaries[index];
   const dateStr = diary.date.split('T')[0];
   const filename = `${dateStr}-${diary.author}`;
+
+  const diaryId = getDiaryCommentId(diary);
+  const includeComments = confirm('是否一并导出评论区内容？');
+  const comments = includeComments ? (commentsData[diaryId] || []) : [];
   
   if (format === 'md') {
     const metadata = `---\ntitle: ${diary.title}\nauthor: ${diary.author}\ndate: ${diary.date}\n---\n\n`;
-    const blob = new Blob([metadata + diary.content], {type:'text/markdown;charset=utf-8;'});
+    const extra = includeComments ? buildCommentsMarkdown(comments) : '';
+    const blob = new Blob([metadata + diary.content + extra], {type:'text/markdown;charset=utf-8;'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = `${filename}.md`;
     a.click();
     URL.revokeObjectURL(a.href);
   } else if (format === 'txt') {
-    const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}`;
+    const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}${includeComments ? buildCommentsText(comments) : ''}`;
     const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -236,7 +335,8 @@ function exportSingleDiary(index, format) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const metadata = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n`;
-    const fullText = metadata + diary.content.replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '');
+    const commentText = includeComments ? buildCommentsText(comments) : '';
+    const fullText = metadata + diary.content.replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '') + commentText;
     const lines = doc.splitTextToSize(fullText, 180);
     doc.setFontSize(12);
     doc.text(lines, 14, 20);
@@ -246,56 +346,213 @@ function exportSingleDiary(index, format) {
 
 // 导出所有日记
 function exportAll(format) {
+  openExportSelection(format);
+}
+
+function openExportSelection(format) {
   const dropdown = document.getElementById('exportDropdown');
-  dropdown.classList.remove('show');
-  
+  if (dropdown) dropdown.classList.remove('show');
+
   if (allDiaries.length === 0) {
     alert('没有可导出的日记');
     return;
   }
-  
-  if (format === 'md') {
-    let allContent = '';
-    allDiaries.forEach(diary => {
+
+  pendingExportFormat = format;
+  const modal = document.getElementById('exportSelectModal');
+  const list = document.getElementById('exportSelectList');
+  if (!modal || !list) return;
+
+  list.innerHTML = allDiaries.map((diary, idx) => {
+    const dateStr = String(diary.date || '').split('T')[0];
+    const checkboxId = `export-cb-${idx}`;
+    return `
+      <div class="export-select-item" onclick="toggleExportItem(${idx})">
+        <input type="checkbox" id="${checkboxId}" data-index="${idx}" checked onclick="event.stopPropagation()">
+        <div class="meta">
+          <div class="title">${diary.title}</div>
+          <div class="sub">${diary.author} · ${dateStr}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  modal.style.display = 'flex';
+}
+
+function hideExportSelectModal() {
+  const modal = document.getElementById('exportSelectModal');
+  if (modal) modal.style.display = 'none';
+  pendingExportFormat = null;
+}
+
+function toggleExportItem(index) {
+  const cb = document.getElementById(`export-cb-${index}`);
+  if (!cb) return;
+  cb.checked = !cb.checked;
+}
+
+function selectAllExportItems() {
+  document.querySelectorAll('#exportSelectList input[type="checkbox"]').forEach(cb => {
+    cb.checked = true;
+  });
+}
+
+function deselectAllExportItems() {
+  document.querySelectorAll('#exportSelectList input[type="checkbox"]').forEach(cb => {
+    cb.checked = false;
+  });
+}
+
+function confirmExportSelection() {
+  const selected = Array.from(document.querySelectorAll('#exportSelectList input[type="checkbox"]'))
+    .filter(cb => cb.checked)
+    .map(cb => Number(cb.getAttribute('data-index')))
+    .filter(n => !Number.isNaN(n));
+
+  if (selected.length === 0) {
+    alert('请至少选择一篇日记');
+    return;
+  }
+
+  const includeComments = confirm('是否一并导出评论区内容？');
+  exportSelectedDiaries(pendingExportFormat, selected, includeComments);
+  hideExportSelectModal();
+}
+
+function buildCommentsMarkdown(comments) {
+  if (!comments || comments.length === 0) return '';
+  let md = '\n\n## 评论\n\n';
+  comments.forEach((c) => {
+    md += `- **${c.author}** (${formatCommentTime(c.time)}): ${c.content}\n`;
+  });
+  return md;
+}
+
+function buildCommentsText(comments) {
+  if (!comments || comments.length === 0) return '';
+  let text = '\n\n评论:\n';
+  comments.forEach((c) => {
+    text += `- ${c.author} (${formatCommentTime(c.time)}): ${c.content}\n`;
+  });
+  return text;
+}
+
+function exportSelectedDiaries(format, selectedIndexes, includeComments) {
+  selectedIndexes.forEach((idx) => {
+    const diary = allDiaries[idx];
+    if (!diary) return;
+
+    const dateStr = String(diary.date || '').split('T')[0];
+    const filename = `${dateStr}-${diary.author}-${diary.title}`.replace(/[\\/:*?"<>|]/g, '_');
+
+    const diaryId = getDiaryCommentId(diary);
+    const comments = includeComments ? (commentsData[diaryId] || []) : [];
+
+    if (format === 'md') {
       const metadata = `---\ntitle: ${diary.title}\nauthor: ${diary.author}\ndate: ${diary.date}\n---\n\n`;
-      allContent += metadata + diary.content + '\n\n---\n\n';
-    });
-    const blob = new Blob([allContent], {type:'text/markdown;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `all-diaries-${new Date().toISOString().split('T')[0]}.md`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'txt') {
-    let allContent = '';
-    allDiaries.forEach(diary => {
-      allContent += `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}\n\n${'='.repeat(50)}\n\n`;
-    });
-    const blob = new Blob([allContent], {type:'text/plain;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `all-diaries-${new Date().toISOString().split('T')[0]}.txt`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'pdf') {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let yPos = 20;
-    
-    allDiaries.forEach((diary, index) => {
-      if (index > 0) {
-        doc.addPage();
-        yPos = 20;
-      }
+      const extra = includeComments ? buildCommentsMarkdown(comments) : '';
+      const blob = new Blob([metadata + diary.content + extra], { type: 'text/markdown;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${filename}.md`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } else if (format === 'txt') {
+      const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}${includeComments ? buildCommentsText(comments) : ''}`;
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${filename}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } else if (format === 'pdf') {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
       const metadata = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n`;
-      const fullText = metadata + diary.content.replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '');
+      const commentText = includeComments ? buildCommentsText(comments) : '';
+      const fullText = metadata + String(diary.content || '').replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '') + commentText;
       const lines = doc.splitTextToSize(fullText, 180);
       doc.setFontSize(12);
-      doc.text(lines, 14, yPos);
-    });
-    
-    doc.save(`all-diaries-${new Date().toISOString().split('T')[0]}.pdf`);
+      doc.text(lines, 14, 20);
+      doc.save(`${filename}.pdf`);
+    }
+  });
+
+  showNotification('已开始导出所选日记');
+}
+
+function showCommentModal(diaryId) {
+  currentDiaryId = diaryId;
+  const modal = document.getElementById('commentModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const author = document.getElementById('commentAuthor');
+  const content = document.getElementById('commentContent');
+  if (author) author.value = '赵涵';
+  if (content) content.value = '';
+}
+
+function hideCommentModal() {
+  const modal = document.getElementById('commentModal');
+  if (modal) modal.style.display = 'none';
+  currentDiaryId = null;
+}
+
+function submitComment() {
+  const author = document.getElementById('commentAuthor')?.value;
+  const content = document.getElementById('commentContent')?.value?.trim();
+
+  if (!content) {
+    alert('请输入评论内容');
+    return;
   }
+  if (!currentDiaryId) {
+    alert('评论失败，请重试');
+    return;
+  }
+
+  if (!commentsData[currentDiaryId]) {
+    commentsData[currentDiaryId] = [];
+  }
+  commentsData[currentDiaryId].push({
+    author: author,
+    content: content,
+    time: new Date().toISOString()
+  });
+  persistCommentsData();
+  updateCommentsDisplay(currentDiaryId);
+  hideCommentModal();
+  showNotification('评论发表成功！');
+}
+
+function updateCommentsDisplay(diaryId) {
+  const commentsContainer = document.getElementById(`comments-${diaryId}`);
+  if (!commentsContainer) return;
+
+  const list = commentsContainer.querySelector('.comment-list');
+  if (!list) return;
+
+  const comments = commentsData[diaryId] || [];
+  const countEl = commentsContainer.querySelector('.comment-count');
+  if (countEl) countEl.textContent = comments.length;
+
+  if (comments.length === 0) {
+    list.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>';
+    return;
+  }
+
+  list.innerHTML = comments.map((comment) => `
+    <div class="comment-item">
+      <div class="comment-avatar">${String(comment.author || '').charAt(0)}</div>
+      <div class="comment-content">
+        <div class="comment-author">${comment.author}</div>
+        <div class="comment-time">${formatCommentTime(comment.time)}</div>
+        <div class="comment-text">${comment.content}</div>
+      </div>
+    </div>
+  `).join('');
 }
 
 // 导出下拉菜单
@@ -306,7 +563,8 @@ function toggleExportDropdown() {
 
 // 点击外部关闭下拉菜单
 window.onclick = function(event) {
-  if (!event.target.matches('.export-dropdown button')) {
+  const exportDropdown = document.querySelector('.export-dropdown');
+  if (exportDropdown && !event.target.closest('.export-dropdown')) {
     const dropdowns = document.getElementsByClassName('dropdown-menu');
     for (let i = 0; i < dropdowns.length; i++) {
       if (dropdowns[i].classList.contains('show')) {
@@ -330,5 +588,6 @@ function refreshLibrary() {
 
 // 页面加载时执行
 window.addEventListener('load', function() {
+  loadCommentsData();
   loadDiariesFromGitHub();
 });

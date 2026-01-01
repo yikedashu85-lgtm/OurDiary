@@ -602,3 +602,59 @@
   min-height: 100px;
   line-height: 1.5;
 }
+
+/* 日记库导出多选弹窗样式 */
+.export-select-modal {
+  max-width: 680px;
+}
+
+.export-select-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.export-select-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 50vh;
+  overflow: auto;
+  padding-right: 0.25rem;
+}
+
+.export-select-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.export-select-item:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.export-select-item input[type="checkbox"] {
+  margin-top: 0.25rem;
+}
+
+.export-select-item .meta {
+  flex: 1;
+}
+
+.export-select-item .meta .title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.export-select-item .meta .sub {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
