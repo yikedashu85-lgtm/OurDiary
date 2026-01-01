@@ -1,34 +1,32 @@
 /* 全局样式 */
 :root {
-  /* 主色调 */
-  --primary-color: #5b7052;
-  --primary-light: #7a8d6d;
-  --primary-dark: #4a5d42;
+  /* 温馨日记主题色彩 */
+  --primary-color: #8b7355;
+  --primary-light: #a09078;
+  --primary-dark: #6b5a45;
+  --secondary-color: #d4a574;
+  --accent-color: #c19a6b;
   
-  /* 功能色彩 */
-  --pink-color: #ff6b9d;
-  --orange-color: #feca57;
-  --purple-color: #a29bfe;
-  --green-color: #48dbfb;
+  /* 背景色 */
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f5f0e8;
+  --bg-card: #ffffff;
   
-  /* 中性色 */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-tertiary: #f1f3f4;
-  --text-primary: #2c3e50;
-  --text-secondary: #6c757d;
-  --text-tertiary: #adb5bd;
-  --border-color: #e9ecef;
-  --shadow-light: rgba(0, 0, 0, 0.05);
-  --shadow-medium: rgba(0, 0, 0, 0.1);
-  --shadow-heavy: rgba(0, 0, 0, 0.15);
+  /* 文字色 */
+  --text-primary: #4a4a4a;
+  --text-secondary: #6b6b6b;
+  --text-muted: #8a8a8a;
   
-  /* 布局尺寸 */
-  --sidebar-width: 280px;
-  --header-height: 0px;
-  --border-radius: 16px;
+  /* 边框和阴影 */
+  --border-color: #e8ddd0;
+  --shadow-light: 0 2px 8px rgba(139, 115, 85, 0.08);
+  --shadow-medium: 0 4px 16px rgba(139, 115, 85, 0.12);
+  --shadow-heavy: 0 8px 32px rgba(139, 115, 85, 0.16);
+  
+  /* 圆角 */
+  --border-radius: 12px;
   --border-radius-sm: 8px;
-  --border-radius-lg: 24px;
+  --border-radius-lg: 16px;
 }
 
 * {
@@ -54,7 +52,7 @@ body {
 /* 侧边栏 */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
   color: white;
   display: flex;
   flex-direction: column;
@@ -256,30 +254,38 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.875rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.875rem;
   font-weight: 500;
-  text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px var(--shadow-light);
+  text-decoration: none;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-light);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
 }
 
 .btn-primary {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
+  box-shadow: 0 4px 12px rgba(139, 115, 85, 0.3);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px var(--shadow-medium);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+  box-shadow: 0 6px 20px rgba(139, 115, 85, 0.4);
 }
 
 .btn-secondary {
-  background: white;
-  color: var(--text-primary);
+  background: var(--bg-card);
+  color: var(--primary-color);
   border: 1px solid var(--border-color);
 }
 

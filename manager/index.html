@@ -110,7 +110,13 @@
               
               <div class="form-group">
                 <label for="date" class="form-label">日期时间</label>
-                <input type="datetime-local" id="date" class="form-input">
+                <div class="date-input-group">
+                  <input type="datetime-local" id="date" class="form-input">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="setCurrentDateTime()" title="设置为当前时间">
+                    <i class="ri-time-line"></i>
+                    Now
+                  </button>
+                </div>
               </div>
             </div>
             

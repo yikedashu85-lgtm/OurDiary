@@ -275,6 +275,26 @@ document.getElementById('title').addEventListener('input', startAutoSave);
 document.getElementById('author').addEventListener('change', startAutoSave);
 document.getElementById('date').addEventListener('change', startAutoSave);
 
+// 设置当前日期时间
+function setCurrentDateTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  
+  const dateTimeString = `${year}-${month}-${day}T${hours}:${minutes}`;
+  document.getElementById('date').value = dateTimeString;
+}
+
+// 页面加载时设置默认日期时间
+window.addEventListener('load', function() {
+  setCurrentDateTime();
+  updatePreview();
+  startAutoSave();
+});
+
 // 页面加载时恢复草稿
 window.addEventListener('load', function() {
   const draft = localStorage.getItem('diary_draft');
