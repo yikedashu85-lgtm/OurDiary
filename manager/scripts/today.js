@@ -470,6 +470,53 @@ function refreshFeed() {
 window.addEventListener('load', function() {
   updateCurrentDate();
   loadCommentsData(); // 加载评论数据
+  
+  // 直接在页面上添加测试评论功能
+  setTimeout(() => {
+    const feed = document.getElementById('diary-feed');
+    if (feed && feed.innerHTML.includes('loading-state')) {
+      console.log('直接注入测试评论功能');
+      feed.innerHTML = `
+        <div class="diary-card">
+          <div class="diary-header">
+            <div class="diary-author">
+              <div class="author-avatar">赵</div>
+              <div class="author-info">
+                <div class="author-name">赵涵</div>
+                <div class="diary-time">${todayStr()}</div>
+              </div>
+            </div>
+            <div class="diary-actions">
+              <button class="diary-action-btn" title="导出">
+                <i class="ri-download-2-line"></i>
+              </button>
+            </div>
+          </div>
+          
+          <h3 class="diary-title">测试日记</h3>
+          <div class="diary-content">这是一个测试日记，用于展示评论功能。</div>
+          
+          <div class="diary-comments" id="comments-test">
+            <div class="comments-header">
+              <div class="comments-title">
+                <i class="ri-chat-3-line"></i>
+                评论
+                <span class="comment-count">0</span>
+              </div>
+              <button class="add-comment-btn" onclick="showCommentModal('test')">
+                <i class="ri-add-line"></i>
+                添加评论
+              </button>
+            </div>
+            <div class="comment-list">
+              <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }, 2000);
+  
   loadTodayDiaries();
   
   // 每分钟更新一次时间显示
