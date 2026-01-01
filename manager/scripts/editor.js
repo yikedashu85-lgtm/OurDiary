@@ -53,7 +53,7 @@ async function loadDiaryForEdit(filename) {
 
     document.getElementById('title').value = metadata.title || '';
     document.getElementById('author').value = metadata.author || '赵涵';
-    document.getElementById('date').value = (metadata.date || new Date().toISOString().slice(0,16)).slice(0, 16);
+    setCurrentDateTime();
     editor.value = frontMatterMatch[2] || '';
     render();
 

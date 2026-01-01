@@ -292,9 +292,22 @@ function renderDiaries() {
     
     diaryList.appendChild(card);
 
-    card.addEventListener('click', () => {
-      openDiaryPreview(index);
-    });
+    const headerEl = card.querySelector('.diary-header');
+    const titleEl = card.querySelector('.diary-title');
+    const actionsEl = card.querySelector('.diary-actions');
+    if (headerEl) {
+      headerEl.style.cursor = 'pointer';
+      headerEl.addEventListener('click', (e) => {
+        if (actionsEl && actionsEl.contains(e.target)) return;
+        openDiaryPreview(index);
+      });
+    }
+    if (titleEl) {
+      titleEl.style.cursor = 'pointer';
+      titleEl.addEventListener('click', () => {
+        openDiaryPreview(index);
+      });
+    }
 
     updateCommentsDisplay(diaryId);
   });
