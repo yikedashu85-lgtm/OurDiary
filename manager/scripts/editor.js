@@ -192,11 +192,11 @@ function insertMarkdown(before, after) {
   
   let newText;
   if (before === '## ' && !selectedText) {
-    newText = before + '标题';
+    newText = before; // 只插入 ## 
   } else if (before === '- ' && !selectedText) {
-    newText = before + '列表项';
+    newText = before; // 只插入 - 
   } else if (before === '> ' && !selectedText) {
-    newText = before + '引用内容';
+    newText = before; // 只插入 > 
   } else {
     newText = before + selectedText + after;
   }
@@ -207,11 +207,11 @@ function insertMarkdown(before, after) {
   // 设置新的光标位置
   if (!selectedText) {
     if (before === '## ') {
-      textarea.setSelectionRange(start + before.length + 2, start + before.length + 2);
+      textarea.setSelectionRange(start + before.length, start + before.length);
     } else if (before === '- ') {
-      textarea.setSelectionRange(start + before.length + 3, start + before.length + 3);
+      textarea.setSelectionRange(start + before.length, start + before.length);
     } else if (before === '> ') {
-      textarea.setSelectionRange(start + before.length + 5, start + before.length + 5);
+      textarea.setSelectionRange(start + before.length, start + before.length);
     } else {
       textarea.setSelectionRange(start + before.length, start + before.length);
     }
@@ -219,7 +219,7 @@ function insertMarkdown(before, after) {
     textarea.setSelectionRange(start + before.length + selectedText.length + after.length, start + before.length + selectedText.length + after.length);
   }
   
-  render();
+  updatePreview();
 }
 
 // 预览切换功能
