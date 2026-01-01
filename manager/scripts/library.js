@@ -13,6 +13,8 @@ let pendingSingleExportIndex = null;
 let pendingSingleExportFormat = null;
 let pendingIncludeCommentsCallback = null;
 
+let pendingDeleteIndex = null;
+
 // 获取保存的 token（使用main.js中的函数）
 function getToken() {
   return localStorage.getItem('github_token');
@@ -257,26 +259,29 @@ function renderDiaries() {
           </div>
         </div>
         <div class="diary-actions">
-          <button class="diary-action-btn" onclick="toggleDiary(${index})" title="展开/收起">
+          <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiary(${index})" title="展开/收起">
             <i class="ri-arrow-down-s-line"></i>
           </button>
-          <button class="diary-action-btn" onclick="exportSingleDiary(${index}, 'md')" title="导出">
+          <button class="diary-action-btn" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'md')" title="导出">
             <i class="ri-download-2-line"></i>
+          </button>
+          <button class="diary-action-btn" onclick="event.stopPropagation(); showLibraryDeleteConfirm(${index})" title="删除">
+            <i class="ri-delete-bin-6-line"></i>
           </button>
         </div>
       </div>
       <h2 class="diary-title">${diary.title}</h2>
-      <div class="diary-content" id="content-${index}" style="display: none;">
+      <div class="diary-content" id="content-${index}" style="display: none;" onclick="event.stopPropagation()">
         ${marked.parse(diary.content)}
       </div>
-      <div class="diary-comments" id="comments-${diaryId}">
+      <div class="diary-comments" id="comments-${diaryId}" onclick="event.stopPropagation()">
         <div class="comments-header">
           <div class="comments-title">
             <i class="ri-chat-3-line"></i>
             评论
             <span class="comment-count">${commentCount}</span>
           </div>
-          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+          <button class="add-comment-btn" onclick="event.stopPropagation(); showCommentModal('${diaryId}')">
             <i class="ri-add-line"></i>
             添加评论
           </button>
@@ -287,8 +292,79 @@ function renderDiaries() {
     
     diaryList.appendChild(card);
 
+    card.addEventListener('click', () => {
+      openDiaryPreview(index);
+    });
+
     updateCommentsDisplay(diaryId);
   });
+}
+
+function openDiaryPreview(index) {
+  const diary = allDiaries[index];
+  if (!diary || !diary.filename) return;
+  window.location.href = `preview.html?file=${encodeURIComponent(diary.filename)}`;
+}
+
+function showLibraryDeleteConfirm(index) {
+  pendingDeleteIndex = index;
+  const modal = document.getElementById('libraryDeleteConfirmModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function hideLibraryDeleteConfirm() {
+  const modal = document.getElementById('libraryDeleteConfirmModal');
+  if (modal) modal.style.display = 'none';
+  pendingDeleteIndex = null;
+}
+
+async function confirmLibraryDelete() {
+  const index = pendingDeleteIndex;
+  if (index === null || index === undefined) return;
+  const diary = allDiaries[index];
+  if (!diary || !diary.filename) {
+    hideLibraryDeleteConfirm();
+    return;
+  }
+
+  const token = getToken();
+  if (!token) {
+    showTokenModal();
+    return;
+  }
+
+  try {
+    const metaRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${encodeURIComponent(diary.filename)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if (!metaRes.ok) {
+      throw new Error('无法获取文件信息');
+    }
+    const meta = await metaRes.json();
+    const sha = meta.sha;
+
+    const delRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${encodeURIComponent(diary.filename)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Delete diary ${diary.filename}`,
+        sha: sha
+      })
+    });
+
+    if (!delRes.ok) {
+      const err = await delRes.json();
+      throw new Error(err?.message || '删除失败');
+    }
+
+    hideLibraryDeleteConfirm();
+    showNotification('删除成功');
+
+    allDiaries.splice(index, 1);
+    renderDiaries();
+  } catch (e) {
+    showNotification(e.message || '删除失败');
+  }
 }
 
 // 切换日记展开/收起

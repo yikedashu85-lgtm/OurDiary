@@ -191,6 +191,24 @@
     </div>
   </div>
 
+  <div id="libraryDeleteConfirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🗑️ 删除日记</h3>
+        <button class="modal-close" onclick="hideLibraryDeleteConfirm()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日记吗？删除后将无法恢复。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideLibraryDeleteConfirm()">取消</button>
+        <button class="btn btn-primary" onclick="confirmLibraryDelete()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../scripts/main.js"></script>
   <script src="scripts/library.js"></script>
 </body>

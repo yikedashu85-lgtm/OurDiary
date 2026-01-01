@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日记预览 · OurDiary</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/diary.css">
+  <link rel="stylesheet" href="../styles/editor.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="ri-book-2-line"></i>
+          <span>OurDiary</span>
+        </div>
+      </div>
+
+      <div class="sidebar-menu">
+        <a href="../index.html" class="menu-item">
+          <i class="ri-home-4-line"></i>
+          <span>首页</span>
+        </a>
+        <a href="index.html" class="menu-item">
+          <i class="ri-edit-2-line"></i>
+          <span>写日常</span>
+        </a>
+        <a href="today.html" class="menu-item">
+          <i class="ri-calendar-line"></i>
+          <span>今天的事</span>
+        </a>
+        <a href="library.html" class="menu-item active">
+          <i class="ri-book-line"></i>
+          <span>日记库</span>
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="token-btn" onclick="showTokenModal()">
+          <i class="ri-key-2-line"></i>
+          <span>重新设置Token</span>
+        </button>
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <div class="content-wrapper">
+        <header class="page-header">
+          <div class="header-left">
+            <h1 class="page-title" id="previewTitle">日记预览</h1>
+            <p class="page-subtitle" id="previewMeta"> </p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" onclick="goBackToLibrary()">
+              <i class="ri-arrow-left-line"></i>
+              返回
+            </button>
+            <button class="btn btn-secondary" onclick="goEdit()" id="btnEdit">
+              <i class="ri-edit-line"></i>
+              编辑
+            </button>
+            <button class="btn btn-secondary" onclick="showDeleteConfirm()" id="btnDelete">
+              <i class="ri-delete-bin-6-line"></i>
+              删除
+            </button>
+          </div>
+        </header>
+
+        <div class="diary-feed" id="previewContainer">
+          <div class="loading-state">
+            <i class="ri-loader-4-line animate-spin"></i>
+            <p>正在加载日记...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔐 设置 GitHub Token</h3>
+        <button class="modal-close" onclick="hideTokenModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="token-input">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideTokenModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveToken()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="deleteConfirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🗑️ 删除日记</h3>
+        <button class="modal-close" onclick="hideDeleteConfirm()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日记吗？删除后将无法恢复。</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideDeleteConfirm()">取消</button>
+        <button class="btn btn-primary" onclick="confirmDelete()">确认删除</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../scripts/main.js"></script>
+  <script src="scripts/preview.js"></script>
+</body>
+</html>

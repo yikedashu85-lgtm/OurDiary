@@ -6,9 +6,60 @@ dateInput.value = new Date().toISOString().slice(0,16);
 const editor = document.getElementById('editor');
 const preview = document.getElementById('preview');
 
+let editingFilename = null;
+
 function render() {
   if (preview) {
     preview.innerHTML = marked.parse(editor.value);
+  }
+}
+
+async function loadDiaryForEdit(filename) {
+  const token = getToken();
+  if (!token) {
+    showTokenModal();
+    return;
+  }
+
+  try {
+    const owner = "yikedashu85-lgtm";
+    const repo = "OurDiary";
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${encodeURIComponent(filename)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if (!res.ok) {
+      throw new Error('无法加载日记');
+    }
+    const fileData = await res.json();
+    const encryptedContent = atob(fileData.content);
+    const decodedContent = decodeURIComponent(escape(encryptedContent));
+
+    const keyHash = deriveKeyFromToken(token);
+    const decryptedContent = decryptContent(decodedContent, keyHash);
+
+    const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+    if (!frontMatterMatch) {
+      throw new Error('日记格式不正确');
+    }
+
+    const metadata = {};
+    frontMatterMatch[1].split('\n').forEach(line => {
+      const [key, ...valueParts] = line.split(':');
+      if (key && valueParts.length > 0) {
+        metadata[key.trim()] = valueParts.join(':').trim();
+      }
+    });
+
+    document.getElementById('title').value = metadata.title || '';
+    document.getElementById('author').value = metadata.author || '赵涵';
+    document.getElementById('date').value = (metadata.date || new Date().toISOString().slice(0,16)).slice(0, 16);
+    editor.value = frontMatterMatch[2] || '';
+    render();
+
+    editingFilename = filename;
+  } catch (e) {
+    alert(e.message || '加载失败');
   }
 }
 
@@ -123,7 +174,7 @@ async function uploadToGitHub() {
   const author = document.getElementById('author').value;
   const date = document.getElementById('date').value;
   const dateStr = date ? date.split('T')[0] : new Date().toISOString().split('T')[0];
-  const path = `posts/${dateStr}-${author}.md`;
+  const path = editingFilename ? `posts/${editingFilename}` : `posts/${dateStr}-${author}.md`;
   const content = editor.value;
   const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
 
@@ -311,8 +362,21 @@ window.addEventListener('load', function() {
   startAutoSave();
 });
 
+window.addEventListener('load', function() {
+  const params = new URLSearchParams(window.location.search);
+  const file = params.get('file');
+  if (file) {
+    loadDiaryForEdit(file);
+  }
+});
+
 // 页面加载时恢复草稿
 window.addEventListener('load', function() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('file')) {
+    return;
+  }
+
   const draft = localStorage.getItem('diary_draft');
   if (draft) {
     try {
