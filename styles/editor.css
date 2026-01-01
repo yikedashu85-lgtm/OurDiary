@@ -43,6 +43,16 @@
   font-family: inherit;
 }
 
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.form-input:focus::placeholder,
+.form-textarea:focus::placeholder {
+  opacity: 0.7;
+}
+
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
