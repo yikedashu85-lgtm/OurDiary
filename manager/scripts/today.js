@@ -116,11 +116,7 @@ async function loadTodayDiaries() {
         <div class="empty-state">
           <i class="ri-calendar-2-line"></i>
           <h3>今天还没有日记</h3>
-          <p>今天 (${today}) 还没有记录，快去写一篇吧！</p>
-          <button class="btn btn-primary" onclick="window.location.href='index.html'">
-            <i class="ri-edit-line"></i>
-            写日记
-          </button>
+          <p>今天 (${today}) 还没有记录</p>
         </div>`;
       return;
     }
@@ -153,6 +149,7 @@ async function loadTodayDiaries() {
           });
           
           entries.push({
+            id: file.name.replace(/\.md$/i, ''),
             title: metadata.title || '无标题',
             author: metadata.author || '未知',
             date: metadata.date || file.name,
@@ -172,50 +169,12 @@ async function loadTodayDiaries() {
         <div class="empty-state">
           <i class="ri-calendar-2-line"></i>
           <h3>今天还没有日记</h3>
-          <p>今天 (${today}) 还没有记录，快去写一篇吧！</p>
-          <button class="btn btn-primary" onclick="window.location.href='index.html'">
-            <i class="ri-edit-line"></i>
-            写日记
-          </button>
+          <p>今天 (${today}) 还没有记录</p>
         </div>`;
       return;
     }
 
-    entries.forEach((entry, index) => {
-      const card = document.createElement('div');
-      card.className = 'diary-card';
-      
-      // 获取作者姓名首字母
-      const authorInitial = entry.author.charAt(0);
-      
-      // 格式化时间
-      const dateObj = new Date(entry.date);
-      const timeStr = dateObj.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      
-      card.innerHTML = `
-        <div class="diary-header">
-          <div class="diary-author">
-            <div class="author-avatar">${authorInitial}</div>
-            <div class="author-info">
-              <div class="author-name">${entry.author}</div>
-              <div class="diary-time">${timeStr}</div>
-            </div>
-          </div>
-          <div class="diary-actions">
-            <button class="diary-action-btn" onclick="copyDiary(${index})" title="复制">
-              <i class="ri-file-copy-line"></i>
-            </button>
-            <button class="diary-action-btn" onclick="shareDiary(${index})" title="分享">
-              <i class="ri-share-line"></i>
-            </button>
-          </div>
-        </div>
-        <h2 class="diary-title">${entry.title}</h2>
-        <div class="diary-content">${marked.parse(entry.content)}</div>
-      `;
-      
-      feed.appendChild(card);
-    });
+    displayDiaries(entries);
   } catch(e) {
     feed.innerHTML = `
       <div class="error-state">
@@ -227,6 +186,16 @@ async function loadTodayDiaries() {
           重试
         </button>
       </div>`;
+  }
+}
+
+function toSafeId(input) {
+  try {
+    const bytes = unescape(encodeURIComponent(String(input)));
+    const base64 = btoa(bytes);
+    return base64.replace(/=+$/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  } catch (e) {
+    return String(input).replace(/[^a-zA-Z0-9_-]/g, '_');
   }
 }
 
@@ -275,76 +244,72 @@ function shareDiary(index) {
 // 显示日记
 function displayDiaries(diaries) {
   const feed = document.getElementById('diary-feed');
-  
-  console.log('显示日记，数量:', diaries.length);
-  
-  // 如果没有日记，创建一个测试日记来显示评论功能
-  if (diaries.length === 0) {
-    console.log('没有日记，创建测试日记');
-    const testDiary = {
-      title: '测试日记',
-      author: '赵涵',
-      date: todayStr(),
-      content: '这是一个测试日记，用于展示评论功能。'
-    };
-    diaries = [testDiary];
+
+  if (!Array.isArray(diaries) || diaries.length === 0) {
+    feed.innerHTML = `
+      <div class="empty-state">
+        <i class="ri-calendar-2-line"></i>
+        <h3>今天还没有日记</h3>
+        <p>今天 (${todayStr()}) 还没有记录</p>
+      </div>`;
+    return;
   }
-  
-  console.log('开始渲染日记卡片...');
-  
-  // 渲染所有日记卡片（确保每个都有评论功能）
+
   feed.innerHTML = diaries.map((diary, index) => {
-    const diaryId = `${diary.date}-${diary.author}`;
-    
+    const diaryKey = diary.id || `${diary.date}-${diary.author}`;
+    const safeId = toSafeId(diaryKey);
+
+    const dateObj = new Date(diary.date);
+    const timeStr = isNaN(dateObj.getTime())
+      ? String(diary.date)
+      : dateObj.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+
     return `
       <div class="diary-card">
         <div class="diary-header">
           <div class="diary-author">
-            <div class="author-avatar">${diary.author.charAt(0)}</div>
+            <div class="author-avatar">${String(diary.author || '').charAt(0)}</div>
             <div class="author-info">
               <div class="author-name">${diary.author}</div>
-              <div class="diary-time">${formatDate(diary.date)}</div>
+              <div class="diary-time">${timeStr}</div>
             </div>
           </div>
           <div class="diary-actions">
-            <button class="diary-action-btn" onclick="exportDiary('${diary.date}', '${diary.author}')" title="导出">
-              <i class="ri-download-2-line"></i>
+            <button class="diary-action-btn" onclick="copyDiary(${index})" title="复制">
+              <i class="ri-file-copy-line"></i>
+            </button>
+            <button class="diary-action-btn" onclick="shareDiary(${index})" title="分享">
+              <i class="ri-share-line"></i>
             </button>
           </div>
         </div>
-        
-        <h3 class="diary-title">${diary.title}</h3>
-        <div class="diary-content">${diary.content}</div>
-        
-        <div class="diary-comments" id="comments-${diaryId}">
+
+        <h2 class="diary-title">${diary.title}</h2>
+        <div class="diary-content">${marked.parse(diary.content || '')}</div>
+
+        <div class="diary-comments" id="comments-${safeId}">
           <div class="comments-header">
             <div class="comments-title">
               <i class="ri-chat-3-line"></i>
               评论
-              <span class="comment-count">${(commentsData[diaryId] || []).length}</span>
+              <span class="comment-count">${(commentsData[safeId] || []).length}</span>
             </div>
-            <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+            <button class="add-comment-btn" onclick="showCommentModal('${safeId}')">
               <i class="ri-add-line"></i>
               添加评论
             </button>
           </div>
-          <div class="comment-list">
-            <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
-          </div>
+          <div class="comment-list"></div>
         </div>
       </div>
     `;
   }).join('');
-  
-  console.log('日记卡片渲染完成，开始更新评论显示...');
-  
-  // 更新所有评论显示
-  diaries.forEach(diary => {
-    const diaryId = `${diary.date}-${diary.author}`;
-    updateCommentsDisplay(diaryId);
+
+  diaries.forEach((diary) => {
+    const diaryKey = diary.id || `${diary.date}-${diary.author}`;
+    const safeId = toSafeId(diaryKey);
+    updateCommentsDisplay(safeId);
   });
-  
-  console.log('评论显示更新完成');
 }
 
 // 评论相关变量
@@ -473,27 +438,19 @@ function showNotification(message) {
   const notification = document.createElement('div');
   notification.className = 'notification';
   notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: var(--primary-color);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-medium);
-    z-index: 3000;
-    animation: slideIn 0.3s ease-out;
-          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
-            <i class="ri-add-line"></i>
-            添加评论
-          </button>
-        </div>
-  `;
+  notification.style.cssText = [
+    'position:fixed',
+    'top:20px',
+    'right:20px',
+    'background:var(--primary-color)',
+    'color:#fff',
+    'padding:12px 16px',
+    'border-radius:12px',
+    'box-shadow:0 8px 24px rgba(0,0,0,0.12)',
+    'z-index:3000'
+  ].join(';');
   document.body.appendChild(notification);
-  setTimeout(() => {
-    notification.remove();
-  }, 3000);
+  setTimeout(() => notification.remove(), 2500);
 }
 
 // 刷新功能
@@ -514,53 +471,7 @@ function refreshFeed() {
 window.addEventListener('load', function() {
   updateCurrentDate();
   loadCommentsData(); // 加载评论数据
-  
-  // 直接在页面上添加测试评论功能
-  setTimeout(() => {
-    const feed = document.getElementById('diary-feed');
-    if (feed && feed.innerHTML.includes('loading-state')) {
-      console.log('直接注入测试评论功能');
-      feed.innerHTML = `
-        <div class="diary-card">
-          <div class="diary-header">
-            <div class="diary-author">
-              <div class="author-avatar">赵</div>
-              <div class="author-info">
-                <div class="author-name">赵涵</div>
-                <div class="diary-time">${todayStr()}</div>
-              </div>
-            </div>
-            <div class="diary-actions">
-              <button class="diary-action-btn" title="导出">
-                <i class="ri-download-2-line"></i>
-              </button>
-            </div>
-          </div>
-          
-          <h3 class="diary-title">测试日记</h3>
-          <div class="diary-content">这是一个测试日记，用于展示评论功能。</div>
-          
-          <div class="diary-comments" id="comments-test">
-            <div class="comments-header">
-              <div class="comments-title">
-                <i class="ri-chat-3-line"></i>
-                评论
-                <span class="comment-count">0</span>
-              </div>
-              <button class="add-comment-btn" onclick="showCommentModal('test')">
-                <i class="ri-add-line"></i>
-                添加评论
-              </button>
-            </div>
-            <div class="comment-list">
-              <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-  }, 2000);
-  
+
   loadTodayDiaries();
   
   // 每分钟更新一次时间显示
@@ -585,46 +496,4 @@ setInterval(checkDateChange, 30000);
 // 每5分钟自动刷新一次内容（获取新日记）
 setInterval(refreshFeed, 300000);
 
-// 渲染日记卡片（包含评论功能）
-function renderDiaryCard(diary, index) {
-  const diaryId = `${diary.date}-${diary.author}`;
-  
-  return `
-    <div class="diary-card">
-      <div class="diary-header">
-        <div class="diary-author">
-          <div class="author-avatar">${diary.author.charAt(0)}</div>
-          <div class="author-info">
-            <div class="author-name">${diary.author}</div>
-            <div class="diary-time">${formatDate(diary.date)}</div>
-          </div>
-        </div>
-        <div class="diary-actions">
-          <button class="diary-action-btn" onclick="exportDiary('${diary.date}', '${diary.author}')" title="导出">
-            <i class="ri-download-2-line"></i>
-          </button>
-        </div>
-      </div>
-      
-      <h3 class="diary-title">${diary.title}</h3>
-      <div class="diary-content">${diary.content}</div>
-      
-      <div class="diary-comments" id="comments-${diaryId}">
-        <div class="comments-header">
-          <div class="comments-title">
-            <i class="ri-chat-3-line"></i>
-            评论
-            <span class="comment-count">${(commentsData[diaryId] || []).length}</span>
-          </div>
-          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
-            <i class="ri-add-line"></i>
-            添加评论
-          </button>
-        </div>
-        <div class="comment-list">
-          <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
-        </div>
-      </div>
-    </div>
-  `;
-}
+
