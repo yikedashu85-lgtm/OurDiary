@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OurDiary · 写日记</title>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<style>
+html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7f4; }
+header { height:56px; background:#5b7052; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:0 2px 8px rgba(0,0,0,.15);}
+header .title { font-weight:600; }
+header button { background:#fff; color:#5b7052; border:none; padding:6px 14px; border-radius:16px; cursor:pointer; font-size:13px; margin-left:8px;}
+.main { height: calc(100% - 56px); display:flex; flex-direction: column;}
+.editor-container { flex:1; display:flex; }
+.left-panel { width: 60%; padding:16px; box-sizing:border-box; background:#fff; border-right:1px solid #ddd; display:flex; flex-direction:column;}
+.left-panel input, .left-panel select, .left-panel textarea { width:100%; margin-bottom:12px; padding:8px; font-size:14px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;}
+.left-panel textarea { flex:1; resize:none; font-family: Consolas, "JetBrains Mono", monospace; line-height:1.6;}
+.preview { width:40%; padding:20px; box-sizing:border-box; overflow-y:auto; background:#fafafa;}
+.preview h1,h2,h3 { border-bottom:1px solid #ddd; padding-bottom:4px;}
+.preview img { max-width:100%;}
+
+/* Token 输入模态框样式 */
+.token-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.token-modal.show {
+  display: flex;
+}
+.token-modal-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  max-width: 500px;
+  width: 90%;
+}
+.token-modal-content h3 {
+  margin: 0 0 16px 0;
+  color: #5b7052;
+  font-size: 18px;
+}
+.token-modal-content p {
+  margin: 0 0 16px 0;
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.token-modal-content input {
+  width: 100%;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+  font-family: monospace;
+}
+.token-modal-content .buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.token-modal-content button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.token-modal-content .btn-primary {
+  background: #5b7052;
+  color: #fff;
+}
+.token-modal-content .btn-primary:hover {
+  background: #4a5d42;
+}
+.token-modal-content .btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+}
+.token-modal-content .btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+@media screen and (max-width:768px) {
+  .editor-container { flex-direction: column; }
+  .left-panel, .preview { width:100%; height:50%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">《日常的日常》 · 写日记</div>
+  <div>
+    <button onclick="downloadDiary()">导出 Markdown</button>
+    <button onclick="uploadToGitHub()">保存到 GitHub</button>
+    <button onclick="showTokenModal()">重新设置 Token</button>
+  </div>
+</header>
+
+<!-- Token 输入模态框 -->
+<div id="tokenModal" class="token-modal">
+  <div class="token-modal-content">
+    <h3>🔐 输入 GitHub Token</h3>
+    <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
+    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onkeypress="if(event.key==='Enter') saveToken()">
+    <div class="buttons">
+      <button class="btn-secondary" onclick="hideTokenModal()">取消</button>
+      <button class="btn-primary" onclick="saveToken()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="editor-container">
+    <div class="left-panel">
+      <input id="title" type="text" placeholder="输入标题..." value="今天的日记标题">
+      <select id="author">
+        <option value="赵涵">赵涵（赵涵）</option>
+        <option value="赵卓然">卓然（赵卓然）</option>
+        <option value="李昊叡">昊叡（李昊叡）</option>
+        <option value="朱皓琳">皓琳（朱皓琳）</option>
+        <option value="郭菲菲">菲菲（郭菲菲）</option>
+        <option value="郭子怡">子怡（郭子怡）</option>
+      </select>
+      <input id="date" type="datetime-local" value="">
+      <textarea id="editor"># 写作开始\n在这里写下今天的内容。</textarea>
+    </div>
+    <div class="preview" id="preview"></div>
+  </div>
+</div>
+
+<script>
+// 初始化日期
+const dateInput = document.getElementById('date');
+dateInput.value = new Date().toISOString().slice(0,16);
+
+// Markdown 实时渲染
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+function render() { preview.innerHTML = marked.parse(editor.value); }
+editor.addEventListener('input', render);
+render();
+
+// 导出 Markdown
+function downloadDiary() {
+  const title = document.getElementById('title').value;
+  const author = document.getElementById('author').value;
+  const date = document.getElementById('date').value;
+  const content = editor.value;
+  const metadata = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n`;
+  const blob = new Blob([metadata+content], {type:'text/markdown;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${date.split('T')[0]}-${author}.md`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Token 管理
+const TOKEN_STORAGE_KEY = 'github_token';
+
+// 获取保存的 token
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+// 保存 token
+function saveToken() {
+  const tokenInput = document.getElementById('tokenInput');
+  const token = tokenInput.value.trim();
+  if (!token) {
+    alert('请输入有效的 Token');
+    return;
+  }
+  localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  hideTokenModal();
+  alert('Token 已保存！');
+}
+
+// 显示 token 输入模态框
+function showTokenModal() {
+  const modal = document.getElementById('tokenModal');
+  const tokenInput = document.getElementById('tokenInput');
+  const savedToken = getToken();
+  if (savedToken) {
+    tokenInput.value = savedToken;
+  } else {
+    tokenInput.value = '';
+  }
+  modal.classList.add('show');
+  tokenInput.focus();
+}
+
+// 隐藏 token 输入模态框
+function hideTokenModal() {
+  const modal = document.getElementById('tokenModal');
+  modal.classList.remove('show');
+}
+
+// 点击模态框背景关闭
+document.getElementById('tokenModal').addEventListener('click', function(e) {
+  if (e.target === this) {
+    hideTokenModal();
+  }
+});
+
+// 页面加载时检查 token
+window.addEventListener('DOMContentLoaded', function() {
+  const token = getToken();
+  if (!token) {
+    showTokenModal();
+  }
+});
+
+// 上传到 GitHub
+async function uploadToGitHub() {
+  const token = getToken();
+  if(!token) {
+    alert('请先设置 GitHub Token');
+    showTokenModal();
+    return;
+  }
+
+  const owner = "yikedashu85-lgtm";
+  const repo = "OurDiary";
+  const path = `posts/${new Date().toISOString().split('T')[0]}-${document.getElementById('author').value}.md`;
+
+  const title = document.getElementById('title').value;
+  const author = document.getElementById('author').value;
+  const date = document.getElementById('date').value;
+  const content = editor.value;
+  const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
+
+  try {
+    // 先检查文件是否存在
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if(getRes.status === 200) {
+      const data = await getRes.json();
+      sha = data.sha; // 更新已存在文件
+    }
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Add diary ${title}`,
+        content: btoa(unescape(encodeURIComponent(markdown))),
+        sha: sha
+      })
+    });
+
+    if(res.ok) alert("上传成功！");
+    else {
+      const err = await res.json();
+      alert("上传失败: " + JSON.stringify(err));
+    }
+  } catch(e) { alert("上传异常: "+e.message); }
+}
+</script>
+
+</body>
+</html>

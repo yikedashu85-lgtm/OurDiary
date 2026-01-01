@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今天的事 · OurDiary</title>
+
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f7f4;
+}
+
+header {
+  height: 56px;
+  background: #5b7052;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+header .title { font-weight: 600; font-size: 1rem; }
+header .buttons button {
+  margin-left: 8px;
+  background: #fff;
+  color: #5b7052;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* 日记卡片容器 */
+#diary-feed {
+  max-width: 800px;
+  margin: 16px auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 0 16px;
+}
+
+/* 日记卡片 */
+.diary-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.diary-card .author {
+  font-weight: 600;
+  color: #5b7052;
+  margin-bottom: 6px;
+}
+
+.diary-card .date {
+  font-size: 0.8rem;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.diary-card .content {
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* 响应式：小屏幕自动填充 */
+@media (max-width: 600px) {
+  #diary-feed { padding: 0 8px; }
+  .diary-card { padding: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">今天的事</div>
+  <div class="buttons">
+    <button onclick="window.location.href='index.html'">✍️ 写日记</button>
+    <button onclick="window.location.href='library.html'">📚 日记库</button>
+  </div>
+</header>
+
+<div id="diary-feed"></div>
+
+<script>
+// LocalStorage key
+const STORAGE_KEY = 'ourdiary_entries';
+
+// 获取今天的日期字符串 yyyy-mm-dd
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+// 渲染日记
+function renderFeed() {
+  const feed = document.getElementById('diary-feed');
+  feed.innerHTML = '';
+  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  // 筛选今天的日记
+  const today = todayStr();
+  const entries = Object.values(data).filter(e => e.date.startsWith(today));
+
+  // 按时间倒序
+  entries.sort((a,b)=>b.date.localeCompare(a.date));
+
+  if(entries.length===0) {
+    feed.innerHTML = `<p style="text-align:center;color:#666;">今天还没有日记~</p>`;
+    return;
+  }
+
+  entries.forEach(e=>{
+    const card = document.createElement('div');
+    card.className = 'diary-card';
+    card.innerHTML = `
+      <div class="author">${e.author}</div>
+      <div class="date">${new Date(e.date).toLocaleTimeString()}</div>
+      <div class="content">${marked.parse(e.content)}</div>
+    `;
+    feed.appendChild(card);
+  });
+}
+
+window.addEventListener('load', renderFeed);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
