@@ -8,6 +8,8 @@ const preview = document.getElementById('preview');
 
 let editingFilename = null;
 
+let pendingDraftData = null;
+
 function render() {
   if (preview) {
     preview.innerHTML = marked.parse(editor.value);
@@ -17,6 +19,7 @@ function render() {
 async function loadDiaryForEdit(filename) {
   const token = getToken();
   if (!token) {
+    showAppAlert('请先设置 GitHub Token');
     showTokenModal();
     return;
   }
@@ -59,7 +62,7 @@ async function loadDiaryForEdit(filename) {
 
     editingFilename = filename;
   } catch (e) {
-    alert(e.message || '加载失败');
+    showAppAlert(e.message || '加载失败');
   }
 }
 
@@ -106,8 +109,9 @@ function showNotification(message) {
   notification.textContent = message;
   notification.style.cssText = [
     'position:fixed',
-    'top:20px',
-    'right:20px',
+    'top:12px',
+    'left:50%',
+    'transform:translateX(-50%)',
     'background:var(--primary-color)',
     'color:#fff',
     'padding:12px 16px',
@@ -117,6 +121,55 @@ function showNotification(message) {
   ].join(';');
   document.body.appendChild(notification);
   setTimeout(() => notification.remove(), 2000);
+}
+
+function showAppAlert(message, title = '提示') {
+  const modal = document.getElementById('appAlertModal');
+  const titleEl = document.getElementById('appAlertTitle');
+  const msgEl = document.getElementById('appAlertMessage');
+  if (!modal || !titleEl || !msgEl) {
+    return;
+  }
+  titleEl.textContent = title;
+  msgEl.textContent = message;
+  modal.style.display = 'flex';
+}
+
+function hideAppAlert() {
+  const modal = document.getElementById('appAlertModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function showDraftRestoreModal(draftData) {
+  pendingDraftData = draftData;
+  const modal = document.getElementById('draftRestoreModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function hideDraftRestoreModal() {
+  const modal = document.getElementById('draftRestoreModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function restoreDraft() {
+  if (!pendingDraftData) {
+    hideDraftRestoreModal();
+    return;
+  }
+  document.getElementById('title').value = pendingDraftData.title || '';
+  document.getElementById('author').value = pendingDraftData.author || '赵涵';
+  document.getElementById('date').value = pendingDraftData.date || new Date().toISOString().slice(0,16);
+  editor.value = pendingDraftData.content || '# 写作开始\n在这里写下今天的内容。';
+  render();
+  pendingDraftData = null;
+  localStorage.removeItem('diary_draft');
+  hideDraftRestoreModal();
+}
+
+function discardDraft() {
+  pendingDraftData = null;
+  localStorage.removeItem('diary_draft');
+  hideDraftRestoreModal();
 }
 
 // 导出下拉菜单
@@ -181,7 +234,7 @@ async function exportDiary(format) {
 async function uploadToGitHub() {
   const token = getToken();
   if(!token) {
-    alert('请先设置 GitHub Token');
+    showAppAlert('请先设置 GitHub Token');
     showTokenModal();
     return;
   }
@@ -237,7 +290,7 @@ async function uploadToGitHub() {
       showNotification('保存成功');
     } else {
       const err = await res.json();
-      alert("保存失败: " + JSON.stringify(err));
+      showAppAlert("保存失败: " + JSON.stringify(err));
     }
   } catch(e) { 
     // 恢复按钮状态
@@ -245,7 +298,7 @@ async function uploadToGitHub() {
     uploadBtn.innerHTML = '<i class="ri-upload-cloud-2-line"></i> 保存';
     uploadBtn.disabled = false;
     
-    alert("上传异常: "+e.message); 
+    showAppAlert("上传异常: "+e.message); 
   }
 }
 
@@ -383,30 +436,5 @@ window.addEventListener('load', function() {
   const file = params.get('file');
   if (file) {
     loadDiaryForEdit(file);
-  }
-});
-
-// 页面加载时恢复草稿
-window.addEventListener('load', function() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('file')) {
-    return;
-  }
-
-  const draft = localStorage.getItem('diary_draft');
-  if (draft) {
-    try {
-      const draftData = JSON.parse(draft);
-      if (confirm('检测到未保存的草稿，是否恢复？')) {
-        document.getElementById('title').value = draftData.title || '';
-        document.getElementById('author').value = draftData.author || '赵涵';
-        document.getElementById('date').value = draftData.date || new Date().toISOString().slice(0,16);
-        editor.value = draftData.content || '# 写作开始\n在这里写下今天的内容。';
-        render();
-      }
-      localStorage.removeItem('diary_draft');
-    } catch(e) {
-      console.error('恢复草稿失败:', e);
-    }
   }
 });

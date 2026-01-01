@@ -186,6 +186,41 @@
     </div>
   </div>
 
+  <div id="appAlertModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="appAlertTitle">提示</h3>
+        <button class="modal-close" onclick="hideAppAlert()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="appAlertMessage" style="color: var(--text-secondary); margin: 0;"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="hideAppAlert()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="draftRestoreModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📝 发现未保存草稿</h3>
+        <button class="modal-close" onclick="hideDraftRestoreModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin: 0;">检测到未保存的草稿，是否恢复？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="discardDraft()">不恢复</button>
+        <button class="btn btn-primary" onclick="restoreDraft()">恢复</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../scripts/main.js"></script>
   <script src="scripts/editor.js"></script>
 </body>
