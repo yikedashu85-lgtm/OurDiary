@@ -1,314 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>今天的事 · OurDiary</title>
-
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f7f4;
-}
-
-header {
-  height: 56px;
-  background: #5b7052;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.15);
-}
-
-header .title { font-weight: 600; font-size: 1rem; }
-header .buttons button {
-  margin-left: 8px;
-  background: #fff;
-  color: #5b7052;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 16px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-/* 日记卡片容器 */
-#diary-feed {
-  max-width: 800px;
-  margin: 16px auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  padding: 0 16px;
-}
-
-/* 日记卡片 */
-.diary-card {
-  background: #fff;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  margin-bottom: 16px;
-  transition: box-shadow 0.2s;
-}
-
-.diary-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.diary-card .author {
-  font-weight: 600;
-  color: #5b7052;
-  font-size: 15px;
-}
-
-.diary-card .date {
-  font-size: 0.75rem;
-  color: #999;
-}
-
-.diary-card .title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  margin: 12px 0 8px 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f0f0f0;
-}
-.diary-card .content {
-  line-height: 1.8;
-  color: #444;
-  margin-top: 12px;
-}
-.diary-card .content p {
-  margin: 8px 0;
-}
-.diary-card .content h1, .diary-card .content h2, .diary-card .content h3 {
-  margin-top: 16px;
-  margin-bottom: 8px;
-  color: #333;
-}
-.diary-card .content img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 12px 0;
-}
-
-/* 响应式：小屏幕自动填充 */
-@media (max-width: 600px) {
-  #diary-feed { padding: 0 8px; }
-  .diary-card { padding: 12px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>今天的事 · OurDiary</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/diary.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
 </head>
 <body>
-
-<header>
-  <div class="title">今天的事</div>
-  <div class="buttons">
-    <button onclick="refreshFeed()">🔄 刷新</button>
-    <button onclick="window.location.href='index.html'">✍️ 写日记</button>
-    <button onclick="window.location.href='library.html'">📚 日记库</button>
-  </div>
-</header>
-
-<div id="diary-feed"></div>
-
-<script>
-const TOKEN_STORAGE_KEY = 'github_token';
-const owner = "yikedashu85-lgtm";
-const repo = "OurDiary";
-
-// 获取保存的 token
-function getToken() {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
-}
-
-// 加密/解密工具函数
-function deriveKeyFromToken(token) {
-  const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
-  return hash;
-}
-
-function decryptContent(encryptedContent, keyHash) {
-  try {
-    const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
-    const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
-      iv: iv,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7
-    });
-    const result = decrypted.toString(CryptoJS.enc.Utf8);
-    if (!result) {
-      throw new Error('解密失败');
-    }
-    return result;
-  } catch(e) {
-    throw new Error('解密失败');
-  }
-}
-
-// 获取今天的日期字符串 yyyy-mm-dd（使用本地时间）
-function todayStr() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-// 获取当前时间显示（包含时区信息）
-function getCurrentTimeDisplay() {
-  const now = new Date();
-  return now.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short'
-  });
-}
-
-// 从 GitHub 加载今天的日记
-async function loadTodayDiaries() {
-  const token = getToken();
-  if (!token) {
-    document.getElementById('diary-feed').innerHTML = '<p style="text-align:center;color:#666;">请先设置 GitHub Token</p>';
-    return;
-  }
-
-  const feed = document.getElementById('diary-feed');
-  const today = todayStr();
-  feed.innerHTML = `<p style="text-align:center;color:#666;">正在加载今天的日记 (${today})...</p>`;
-
-  try {
-    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts`, {
-      headers: { Authorization: `token ${token}` }
-    });
-
-    if (!response.ok) {
-      throw new Error('无法访问 GitHub 仓库');
-    }
-
-    const files = await response.json();
-    
-    // 更精确的文件匹配：以今天的日期开头，以.md结尾
-    const todayFiles = files.filter(f => {
-      const isMd = f.name.endsWith('.md');
-      const startsWithToday = f.name.startsWith(today);
-      return isMd && startsWithToday;
-    });
-    
-    console.log(`今天日期: ${today}, 找到 ${todayFiles.length} 个今天的日记文件:`, todayFiles.map(f => f.name));
-    
-    if (todayFiles.length === 0) {
-      feed.innerHTML = `
-        <p style="text-align:center;color:#666;">
-          今天 (${today}) 还没有日记~<br>
-          <small>当前时间: ${getCurrentTimeDisplay()}</small>
-        </p>`;
-      return;
-    }
-
-    feed.innerHTML = '';
-    const keyHash = deriveKeyFromToken(token);
-    const entries = [];
-
-    // 获取所有今天的文件内容
-    for (const file of todayFiles) {
-      try {
-        const fileResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${file.name}`, {
-          headers: { Authorization: `token ${token}` }
-        });
-        const fileData = await fileResponse.json();
-        const encryptedContent = atob(fileData.content);
-        // 解码Base64内容（匹配index.html的编码方式）
-        const decodedContent = decodeURIComponent(escape(encryptedContent));
-        const decryptedContent = decryptContent(decodedContent, keyHash);
-        
-        // 解析 front matter
-        const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
-        if (frontMatterMatch) {
-          const metadata = {};
-          frontMatterMatch[1].split('\n').forEach(line => {
-            const [key, ...valueParts] = line.split(':');
-            if (key && valueParts.length > 0) {
-              metadata[key.trim()] = valueParts.join(':').trim();
-            }
-          });
-          
-          entries.push({
-            title: metadata.title || '无标题',
-            author: metadata.author || '未知',
-            date: metadata.date || file.name,
-            content: frontMatterMatch[2]
-          });
-        }
-      } catch(e) {
-        console.error(`无法解密文件 ${file.name}:`, e);
-      }
-    }
-
-    // 按时间倒序
-    entries.sort((a,b)=>new Date(b.date) - new Date(a.date));
-
-    if(entries.length === 0) {
-      feed.innerHTML = '<p style="text-align:center;color:#666;">今天还没有日记~</p>';
-      return;
-    }
-
-    entries.forEach(e=>{
-      const card = document.createElement('div');
-      card.className = 'diary-card';
-      const dateObj = new Date(e.date);
-      const timeStr = dateObj.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <div class="author">${e.author}</div>
-          <div class="date">${timeStr}</div>
+  <div class="app-container">
+    <!-- 左侧导航栏 -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="ri-book-2-line"></i>
+          <span>OurDiary</span>
         </div>
-        <div class="title">${e.title}</div>
-        <div class="content">${marked.parse(e.content)}</div>
-      `;
-      feed.appendChild(card);
-    });
-  } catch(e) {
-    feed.innerHTML = `<p style="text-align:center;color:#d32f2f;">加载失败: ${e.message}</p>`;
-  }
-}
+      </div>
+      
+      <div class="sidebar-menu">
+        <a href="../index.html" class="menu-item">
+          <i class="ri-home-4-line"></i>
+          <span>首页</span>
+        </a>
+        <a href="index.html" class="menu-item">
+          <i class="ri-edit-2-line"></i>
+          <span>写日常</span>
+        </a>
+        <a href="today.html" class="menu-item active">
+          <i class="ri-calendar-line"></i>
+          <span>今天的事</span>
+        </a>
+        <a href="library.html" class="menu-item">
+          <i class="ri-book-line"></i>
+          <span>日记库</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-footer">
+        <button class="token-btn" onclick="showTokenModal()">
+          <i class="ri-key-2-line"></i>
+          <span>重新设置Token</span>
+        </button>
+      </div>
+    </nav>
 
-window.addEventListener('load', loadTodayDiaries);
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        <!-- 页面标题 -->
+        <header class="page-header">
+          <div class="header-left">
+            <h1 class="page-title">今天的事</h1>
+            <p class="page-subtitle" id="currentDate">正在加载...</p>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-secondary" onclick="refreshFeed()">
+              <i class="ri-refresh-line"></i>
+              刷新
+            </button>
+            <button class="btn btn-primary" onclick="window.location.href='index.html'">
+              <i class="ri-edit-line"></i>
+              写日记
+            </button>
+          </div>
+        </header>
 
-// 添加刷新功能
-function refreshFeed() {
-  loadTodayDiaries();
-}
+        <!-- 日记卡片容器 -->
+        <div class="diary-feed" id="diary-feed">
+          <div class="loading-state">
+            <i class="ri-loader-4-line animate-spin"></i>
+            <p>正在加载今天的日记...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
-// 每分钟检查一次日期是否变化，自动刷新到新的一天
-let lastDate = todayStr();
-function checkDateChange() {
-  const currentDate = todayStr();
-  if (currentDate !== lastDate) {
-    console.log(`日期已从 ${lastDate} 变为 ${currentDate}，自动刷新页面`);
-    lastDate = currentDate;
-    loadTodayDiaries();
-  }
-}
+  <!-- Token 设置模态框 -->
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔐 设置 GitHub Token</h3>
+        <button class="modal-close" onclick="hideTokenModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="token-input">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideTokenModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveToken()">保存</button>
+      </div>
+    </div>
+  </div>
 
-// 每30秒检查一次日期变化
-setInterval(checkDateChange, 30000);
-
-// 每5分钟自动刷新一次内容（获取新日记）
-setInterval(refreshFeed, 300000);
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+  <script src="../scripts/main.js"></script>
+  <script src="scripts/today.js"></script>
 </body>
 </html>

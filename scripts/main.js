@@ -53,6 +53,46 @@ document.getElementById('tokenInput').addEventListener('keypress', function(e) {
   }
 });
 
+// 照片轮播功能
+function initPhotoCarousel() {
+  const cards = Array.from(document.querySelectorAll('.deck .card'));
+  if (cards.length === 0) return;
+  
+  let order = [0, 1, 2];
+  
+  // 自动处理路径：本地开发用 /，部署到 GitHub 用 /OurDiary/
+  const isProd = window.location.hostname !== 'localhost';
+  const baseUrl = isProd ? '/OurDiary/' : '/';
+
+  // 1. 图片加载
+  cards.forEach((card, i) => {
+    const bgPath = card.getAttribute('data-bg');
+    const cleanBgPath = bgPath.startsWith('/') ? bgPath.slice(1) : bgPath;
+    card.style.backgroundImage = `url(${baseUrl}${cleanBgPath})`;
+  });
+
+  // 2. 轮播动画
+  function updateClasses() {
+    cards.forEach((card, i) => {
+      card.className = 'card';
+      card.classList.add(`pos-${order[i]}`);
+    });
+  }
+
+  updateClasses();
+
+  setInterval(() => {
+    if(cards.length < 3) return;
+    const topCardIndex = order.indexOf(0);
+    cards[topCardIndex].classList.add('moving');
+    
+    setTimeout(() => {
+      order = order.map(pos => (pos === 0 ? 2 : pos - 1));
+      updateClasses();
+    }, 450);
+  }, 4500);
+}
+
 // 加载最近日记
 async function loadRecentDiaries() {
   const token = getToken();
@@ -156,6 +196,9 @@ function decryptContent(encryptedContent, token) {
 
 // 页面加载时执行
 document.addEventListener('DOMContentLoaded', function() {
+  // 初始化照片轮播
+  initPhotoCarousel();
+  
   // 加载最近日记
   loadRecentDiaries();
   

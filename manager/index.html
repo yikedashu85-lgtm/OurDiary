@@ -1,384 +1,186 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>OurDiary · 写日记</title>
-
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<style>
-html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7f4; }
-header { height:56px; background:#5b7052; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:0 2px 8px rgba(0,0,0,.15);}
-header .title { font-weight:600; }
-header button { background:#fff; color:#5b7052; border:none; padding:6px 14px; border-radius:16px; cursor:pointer; font-size:13px; margin-left:8px;}
-header .export-dropdown { position: relative; display: inline-block; margin-left: 8px; }
-header .export-dropdown button { margin-left: 0; }
-header .export-dropdown-content { display: none; position: absolute; right: 0; background-color: #fff; min-width: 120px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 8px; overflow: hidden; margin-top: 4px; }
-header .export-dropdown-content.show { display: block; }
-header .export-dropdown-content a { color: #5b7052; padding: 10px 16px; text-decoration: none; display: block; font-size: 13px; }
-header .export-dropdown-content a:hover { background-color: #f0f0f0; }
-.main { height: calc(100% - 56px); display:flex; flex-direction: column;}
-.editor-container { flex:1; display:flex; }
-.left-panel { width: 60%; padding:16px; box-sizing:border-box; background:#fff; border-right:1px solid #ddd; display:flex; flex-direction:column;}
-.left-panel input, .left-panel select, .left-panel textarea { width:100%; margin-bottom:12px; padding:8px; font-size:14px; border-radius:6px; border:1px solid #ccc; box-sizing:border-box;}
-.left-panel textarea { flex:1; resize:none; font-family: Consolas, "JetBrains Mono", monospace; line-height:1.6;}
-.preview { width:40%; padding:20px; box-sizing:border-box; overflow-y:auto; background:#fafafa;}
-.preview h1,h2,h3 { border-bottom:1px solid #ddd; padding-bottom:4px;}
-.preview img { max-width:100%;}
-
-/* Token 输入模态框样式 */
-.token-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 1000;
-  align-items: center;
-  justify-content: center;
-}
-.token-modal.show {
-  display: flex;
-}
-.token-modal-content {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  max-width: 500px;
-  width: 90%;
-}
-.token-modal-content h3 {
-  margin: 0 0 16px 0;
-  color: #5b7052;
-  font-size: 18px;
-}
-.token-modal-content p {
-  margin: 0 0 16px 0;
-  color: #666;
-  font-size: 14px;
-  line-height: 1.5;
-}
-.token-modal-content input {
-  width: 100%;
-  padding: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  box-sizing: border-box;
-  margin-bottom: 16px;
-  font-family: monospace;
-}
-.token-modal-content .buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-.token-modal-content button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-.token-modal-content .btn-primary {
-  background: #5b7052;
-  color: #fff;
-}
-.token-modal-content .btn-primary:hover {
-  background: #4a5d42;
-}
-.token-modal-content .btn-secondary {
-  background: #f0f0f0;
-  color: #333;
-}
-.token-modal-content .btn-secondary:hover {
-  background: #e0e0e0;
-}
-
-@media screen and (max-width:768px) {
-  .editor-container { flex-direction: column; }
-  .left-panel, .preview { width:100%; height:50%; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>写日常 · OurDiary</title>
+  <link rel="stylesheet" href="../styles/main.css">
+  <link rel="stylesheet" href="../styles/editor.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+  <div class="app-container">
+    <!-- 左侧导航栏 -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="ri-book-2-line"></i>
+          <span>OurDiary</span>
+        </div>
+      </div>
+      
+      <div class="sidebar-menu">
+        <a href="../index.html" class="menu-item">
+          <i class="ri-home-4-line"></i>
+          <span>首页</span>
+        </a>
+        <a href="index.html" class="menu-item active">
+          <i class="ri-edit-2-line"></i>
+          <span>写日常</span>
+        </a>
+        <a href="today.html" class="menu-item">
+          <i class="ri-calendar-line"></i>
+          <span>今天的事</span>
+        </a>
+        <a href="library.html" class="menu-item">
+          <i class="ri-book-line"></i>
+          <span>日记库</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-footer">
+        <button class="token-btn" onclick="showTokenModal()">
+          <i class="ri-key-2-line"></i>
+          <span>重新设置Token</span>
+        </button>
+      </div>
+    </nav>
 
-<header>
-  <div class="title">《日常的日常》 · 写日记</div>
-  <div>
-    <div class="export-dropdown">
-      <button onclick="toggleExportDropdown()">导出 ▼</button>
-      <div id="exportDropdown" class="export-dropdown-content">
-        <a href="#" onclick="exportDiary('md'); return false;">Markdown (.md)</a>
-        <a href="#" onclick="exportDiary('txt'); return false;">纯文本 (.txt)</a>
-        <a href="#" onclick="exportDiary('pdf'); return false;">PDF (.pdf)</a>
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        <!-- 页面标题和操作按钮 -->
+        <header class="page-header">
+          <div class="header-left">
+            <h1 class="page-title">写日常</h1>
+            <p class="page-subtitle">记录今天的美好瞬间</p>
+          </div>
+          <div class="header-actions">
+            <div class="export-dropdown">
+              <button class="btn btn-secondary" onclick="toggleExportDropdown()">
+                <i class="ri-download-2-line"></i>
+                导出
+                <i class="ri-arrow-down-s-line"></i>
+              </button>
+              <div id="exportDropdown" class="dropdown-menu">
+                <a href="#" onclick="exportDiary('md'); return false;">
+                  <i class="ri-markdown-line"></i>
+                  Markdown (.md)
+                </a>
+                <a href="#" onclick="exportDiary('txt'); return false;">
+                  <i class="ri-file-text-line"></i>
+                  纯文本 (.txt)
+                </a>
+                <a href="#" onclick="exportDiary('pdf'); return false;">
+                  <i class="ri-file-pdf-line"></i>
+                  PDF (.pdf)
+                </a>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="uploadToGitHub()">
+              <i class="ri-upload-cloud-2-line"></i>
+              保存
+            </button>
+          </div>
+        </header>
+
+        <!-- 编辑器区域 -->
+        <div class="editor-container">
+          <div class="editor-form">
+            <div class="form-group">
+              <label for="title" class="form-label">标题</label>
+              <input type="text" id="title" class="form-input" placeholder="给今天的日记起个标题..." value="今天的日记标题">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label for="author" class="form-label">作者</label>
+                <select id="author" class="form-select">
+                  <option value="赵涵">赵涵</option>
+                  <option value="赵卓然">卓然</option>
+                  <option value="李昊叡">昊叡</option>
+                  <option value="朱皓琳">皓琳</option>
+                  <option value="郭菲菲">菲菲</option>
+                  <option value="郭子怡">子怡</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label for="date" class="form-label">日期时间</label>
+                <input type="datetime-local" id="date" class="form-input">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="editor" class="form-label">内容</label>
+              <div class="editor-wrapper">
+                <textarea id="editor" class="form-textarea" placeholder="开始记录今天的故事..."># 写作开始
+在这里写下今天的内容。</textarea>
+                <div class="editor-toolbar">
+                  <button class="toolbar-btn" onclick="insertMarkdown('**', '**')" title="粗体">
+                    <i class="ri-bold"></i>
+                  </button>
+                  <button class="toolbar-btn" onclick="insertMarkdown('*', '*')" title="斜体">
+                    <i class="ri-italic"></i>
+                  </button>
+                  <button class="toolbar-btn" onclick="insertMarkdown('## ', '')" title="标题">
+                    <i class="ri-h-2"></i>
+                  </button>
+                  <button class="toolbar-btn" onclick="insertMarkdown('- ', '')" title="列表">
+                    <i class="ri-list-unordered"></i>
+                  </button>
+                  <button class="toolbar-btn" onclick="insertMarkdown('> ', '')" title="引用">
+                    <i class="ri-double-quotes-l"></i>
+                  </button>
+                  <button class="toolbar-btn" onclick="insertMarkdown('`', '`')" title="代码">
+                    <i class="ri-code-line"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 预览区域 -->
+          <div class="preview-container">
+            <div class="preview-header">
+              <h3>预览</h3>
+              <div class="preview-actions">
+                <button class="preview-btn" onclick="togglePreview()" id="previewToggle">
+                  <i class="ri-eye-line"></i>
+                </button>
+              </div>
+            </div>
+            <div class="preview-content" id="preview"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Token 设置模态框 -->
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔐 设置 GitHub Token</h3>
+        <button class="modal-close" onclick="hideTokenModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="token-input">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideTokenModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveToken()">保存</button>
       </div>
     </div>
-    <button onclick="uploadToGitHub()">保存</button>
-    <button onclick="showTokenModal()">重新设置 Token</button>
   </div>
-</header>
 
-<!-- Token 输入模态框 -->
-<div id="tokenModal" class="token-modal">
-  <div class="token-modal-content">
-    <h3>🔐 输入 GitHub Token</h3>
-    <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
-    <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onkeypress="if(event.key==='Enter') saveToken()">
-    <div class="buttons">
-      <button class="btn-secondary" onclick="hideTokenModal()">取消</button>
-      <button class="btn-primary" onclick="saveToken()">保存</button>
-    </div>
-  </div>
-</div>
-
-<div class="main">
-  <div class="editor-container">
-    <div class="left-panel">
-      <input id="title" type="text" placeholder="输入标题..." value="今天的日记标题">
-      <select id="author">
-        <option value="赵涵">赵涵（赵涵）</option>
-        <option value="赵卓然">卓然（赵卓然）</option>
-        <option value="李昊叡">昊叡（李昊叡）</option>
-        <option value="朱皓琳">皓琳（朱皓琳）</option>
-        <option value="郭菲菲">菲菲（郭菲菲）</option>
-        <option value="郭子怡">子怡（郭子怡）</option>
-      </select>
-      <input id="date" type="datetime-local" value="">
-      <textarea id="editor"># 写作开始\n在这里写下今天的内容。</textarea>
-    </div>
-    <div class="preview" id="preview"></div>
-  </div>
-</div>
-
-<script>
-// 初始化日期
-const dateInput = document.getElementById('date');
-dateInput.value = new Date().toISOString().slice(0,16);
-
-// Markdown 实时渲染
-const editor = document.getElementById('editor');
-const preview = document.getElementById('preview');
-function render() { preview.innerHTML = marked.parse(editor.value); }
-editor.addEventListener('input', render);
-render();
-
-// 加密/解密工具函数
-function deriveKeyFromToken(token) {
-  // 使用 token 派生一个固定的密钥（使用 SHA256）
-  const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
-  return hash;
-}
-
-function encryptContent(content, keyHash) {
-  // 使用固定 IV 进行 AES-CBC 加密
-  const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 固定 IV
-  const encrypted = CryptoJS.AES.encrypt(content, keyHash, {
-    iv: iv,
-    mode: CryptoJS.mode.CBC,
-    padding: CryptoJS.pad.Pkcs7
-  });
-  return encrypted.toString();
-}
-
-function decryptContent(encryptedContent, keyHash) {
-  try {
-    const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 固定 IV
-    const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
-      iv: iv,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7
-    });
-    const result = decrypted.toString(CryptoJS.enc.Utf8);
-    if (!result) {
-      throw new Error('解密失败');
-    }
-    return result;
-  } catch(e) {
-    throw new Error('解密失败，请检查 token 是否正确');
-  }
-}
-
-// 导出下拉菜单
-function toggleExportDropdown() {
-  const dropdown = document.getElementById('exportDropdown');
-  dropdown.classList.toggle('show');
-}
-
-// 点击外部关闭下拉菜单
-window.onclick = function(event) {
-  if (!event.target.matches('.export-dropdown button')) {
-    const dropdowns = document.getElementsByClassName('export-dropdown-content');
-    for (let i = 0; i < dropdowns.length; i++) {
-      if (dropdowns[i].classList.contains('show')) {
-        dropdowns[i].classList.remove('show');
-      }
-    }
-  }
-}
-
-// 导出日记
-async function exportDiary(format) {
-  const dropdown = document.getElementById('exportDropdown');
-  dropdown.classList.remove('show');
-  
-  const title = document.getElementById('title').value;
-  const author = document.getElementById('author').value;
-  const date = document.getElementById('date').value;
-  const content = editor.value;
-  const dateStr = date.split('T')[0];
-  const filename = `${dateStr}-${author}`;
-  
-  if (format === 'md') {
-    const metadata = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n`;
-    const blob = new Blob([metadata + content], {type:'text/markdown;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${filename}.md`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'txt') {
-    const text = `标题: ${title}\n作者: ${author}\n日期: ${date}\n\n${content}`;
-    const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${filename}.txt`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'pdf') {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const metadata = `标题: ${title}\n作者: ${author}\n日期: ${date}\n\n`;
-    const fullText = metadata + content;
-    const lines = doc.splitTextToSize(fullText, 180);
-    doc.setFontSize(12);
-    doc.text(lines, 14, 20);
-    doc.save(`${filename}.pdf`);
-  }
-}
-
-// Token 管理
-const TOKEN_STORAGE_KEY = 'github_token';
-
-// 获取保存的 token
-function getToken() {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
-}
-
-// 保存 token
-function saveToken() {
-  const tokenInput = document.getElementById('tokenInput');
-  const token = tokenInput.value.trim();
-  if (!token) {
-    alert('请输入有效的 Token');
-    return;
-  }
-  localStorage.setItem(TOKEN_STORAGE_KEY, token);
-  hideTokenModal();
-  alert('Token 已保存！');
-}
-
-// 显示 token 输入模态框
-function showTokenModal() {
-  const modal = document.getElementById('tokenModal');
-  const tokenInput = document.getElementById('tokenInput');
-  const savedToken = getToken();
-  if (savedToken) {
-    tokenInput.value = savedToken;
-  } else {
-    tokenInput.value = '';
-  }
-  modal.classList.add('show');
-  tokenInput.focus();
-}
-
-// 隐藏 token 输入模态框
-function hideTokenModal() {
-  const modal = document.getElementById('tokenModal');
-  modal.classList.remove('show');
-}
-
-// 点击模态框背景关闭
-document.getElementById('tokenModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    hideTokenModal();
-  }
-});
-
-// 页面加载时检查 token
-window.addEventListener('DOMContentLoaded', function() {
-  const token = getToken();
-  if (!token) {
-    showTokenModal();
-  }
-});
-
-// 上传到 GitHub（加密内容）
-async function uploadToGitHub() {
-  const token = getToken();
-  if(!token) {
-    alert('请先设置 GitHub Token');
-    showTokenModal();
-    return;
-  }
-
-  const owner = "yikedashu85-lgtm";
-  const repo = "OurDiary";
-  
-  const title = document.getElementById('title').value;
-  const author = document.getElementById('author').value;
-  const date = document.getElementById('date').value;
-  // 使用用户选择的日期，而不是当前日期
-  const dateStr = date ? date.split('T')[0] : new Date().toISOString().split('T')[0];
-  const path = `posts/${dateStr}-${author}.md`;
-  const content = editor.value;
-  const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
-
-  try {
-    // 加密内容
-    const keyHash = deriveKeyFromToken(token);
-    const encryptedContent = encryptContent(markdown, keyHash);
-    
-    // 先检查文件是否存在
-    let sha = null;
-    const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-      headers: { Authorization: `token ${token}` }
-    });
-    if(getRes.status === 200) {
-      const data = await getRes.json();
-      sha = data.sha; // 更新已存在文件
-    }
-
-    // 上传加密后的内容
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-      method: 'PUT',
-      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `Add diary ${title}`,
-        content: btoa(unescape(encodeURIComponent(encryptedContent))),
-        sha: sha
-      })
-    });
-
-    if(res.ok) {
-      alert("保存成功！\n\n你可以在「今天的事」页面查看今天的日记，或在「日记库」页面查看所有日记。");
-      // 可选：自动跳转到今天的事页面
-      if (confirm("是否前往「今天的事」页面查看？")) {
-        window.location.href = 'today.html';
-      }
-    } else {
-      const err = await res.json();
-      alert("保存失败: " + JSON.stringify(err));
-    }
-  } catch(e) { alert("上传异常: "+e.message); }
-}
-</script>
-
+  <script src="../scripts/main.js"></script>
+  <script src="scripts/editor.js"></script>
 </body>
 </html>
