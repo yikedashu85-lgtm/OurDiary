@@ -127,6 +127,34 @@
   border-bottom: 1px solid var(--border-color);
   font-weight: 500;
   color: var(--text-primary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preview-btn {
+  padding: 0.5rem;
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.preview-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
 }
 
 .preview-content {
@@ -134,6 +162,10 @@
   max-height: 500px;
   overflow-y: auto;
   line-height: 1.7;
+}
+
+.preview-content.hidden {
+  display: none;
 }
 
 .preview-content h1,

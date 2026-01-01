@@ -199,9 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // 初始化照片轮播
   initPhotoCarousel();
   
-  // 加载最近日记
-  loadRecentDiaries();
-  
   // 检查是否有token，如果没有则提示设置
   const token = getToken();
   if (!token) {

@@ -224,16 +224,20 @@ function insertMarkdown(before, after) {
 
 // 预览切换功能
 function togglePreview() {
-  const previewContainer = document.querySelector('.preview-container');
+  const previewContent = document.getElementById('preview');
   const previewToggle = document.getElementById('previewToggle');
   const icon = previewToggle.querySelector('i');
   
-  if (previewContainer.style.display === 'none') {
-    previewContainer.style.display = 'flex';
+  if (previewContent.classList.contains('hidden')) {
+    // 显示预览
+    previewContent.classList.remove('hidden');
     icon.className = 'ri-eye-line';
+    previewToggle.title = '隐藏预览';
   } else {
-    previewContainer.style.display = 'none';
+    // 隐藏预览
+    previewContent.classList.add('hidden');
     icon.className = 'ri-eye-off-line';
+    previewToggle.title = '显示预览';
   }
 }
 
