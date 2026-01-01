@@ -120,7 +120,7 @@ header .export-dropdown-content a:hover { background-color: #f0f0f0; }
         <a href="#" onclick="exportDiary('pdf'); return false;">PDF (.pdf)</a>
       </div>
     </div>
-    <button onclick="uploadToGitHub()">保存到 GitHub</button>
+    <button onclick="uploadToGitHub()">保存</button>
     <button onclick="showTokenModal()">重新设置 Token</button>
   </div>
 </header>
@@ -330,11 +330,13 @@ async function uploadToGitHub() {
 
   const owner = "yikedashu85-lgtm";
   const repo = "OurDiary";
-  const path = `posts/${new Date().toISOString().split('T')[0]}-${document.getElementById('author').value}.md`;
-
+  
   const title = document.getElementById('title').value;
   const author = document.getElementById('author').value;
   const date = document.getElementById('date').value;
+  // 使用用户选择的日期，而不是当前日期
+  const dateStr = date ? date.split('T')[0] : new Date().toISOString().split('T')[0];
+  const path = `posts/${dateStr}-${author}.md`;
   const content = editor.value;
   const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
 
@@ -364,10 +366,15 @@ async function uploadToGitHub() {
       })
     });
 
-    if(res.ok) alert("上传成功！内容已加密保存。");
-    else {
+    if(res.ok) {
+      alert("保存成功！\n\n你可以在「今天的事」页面查看今天的日记，或在「日记库」页面查看所有日记。");
+      // 可选：自动跳转到今天的事页面
+      if (confirm("是否前往「今天的事」页面查看？")) {
+        window.location.href = 'today.html';
+      }
+    } else {
       const err = await res.json();
-      alert("上传失败: " + JSON.stringify(err));
+      alert("保存失败: " + JSON.stringify(err));
     }
   } catch(e) { alert("上传异常: "+e.message); }
 }

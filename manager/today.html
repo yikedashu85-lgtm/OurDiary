@@ -50,25 +50,52 @@ header .buttons button {
 .diary-card {
   background: #fff;
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  margin-bottom: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.diary-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .diary-card .author {
   font-weight: 600;
   color: #5b7052;
-  margin-bottom: 6px;
+  font-size: 15px;
 }
 
 .diary-card .date {
-  font-size: 0.8rem;
-  color: #666;
-  margin-bottom: 8px;
+  font-size: 0.75rem;
+  color: #999;
 }
 
+.diary-card .title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 12px 0 8px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
 .diary-card .content {
-  line-height: 1.6;
-  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #444;
+  margin-top: 12px;
+}
+.diary-card .content p {
+  margin: 8px 0;
+}
+.diary-card .content h1, .diary-card .content h2, .diary-card .content h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #333;
+}
+.diary-card .content img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 12px 0;
 }
 
 /* 响应式：小屏幕自动填充 */
@@ -83,6 +110,7 @@ header .buttons button {
 <header>
   <div class="title">今天的事</div>
   <div class="buttons">
+    <button onclick="refreshFeed()">🔄 刷新</button>
     <button onclick="window.location.href='index.html'">✍️ 写日记</button>
     <button onclick="window.location.href='library.html'">📚 日记库</button>
   </div>
@@ -183,6 +211,7 @@ async function loadTodayDiaries() {
           });
           
           entries.push({
+            title: metadata.title || '无标题',
             author: metadata.author || '未知',
             date: metadata.date || file.name,
             content: frontMatterMatch[2]
@@ -204,9 +233,14 @@ async function loadTodayDiaries() {
     entries.forEach(e=>{
       const card = document.createElement('div');
       card.className = 'diary-card';
+      const dateObj = new Date(e.date);
+      const timeStr = dateObj.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
       card.innerHTML = `
-        <div class="author">${e.author}</div>
-        <div class="date">${new Date(e.date).toLocaleTimeString()}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div class="author">${e.author}</div>
+          <div class="date">${timeStr}</div>
+        </div>
+        <div class="title">${e.title}</div>
         <div class="content">${marked.parse(e.content)}</div>
       `;
       feed.appendChild(card);
@@ -217,6 +251,14 @@ async function loadTodayDiaries() {
 }
 
 window.addEventListener('load', loadTodayDiaries);
+
+// 添加刷新功能
+function refreshFeed() {
+  loadTodayDiaries();
+}
+
+// 每30秒自动刷新一次（可选）
+// setInterval(refreshFeed, 30000);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>

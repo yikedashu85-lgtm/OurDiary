@@ -97,6 +97,7 @@ header .export-dropdown-content a:hover { background-color: #f0f0f0; }
 <header>
   <div class="title">📚 日记库</div>
   <div>
+    <button onclick="refreshLibrary()">🔄 刷新</button>
     <div class="export-dropdown">
       <button onclick="toggleExportDropdown()">导出 ▼</button>
       <div id="exportDropdown" class="export-dropdown-content">
@@ -381,6 +382,11 @@ window.onclick = function(event) {
       }
     }
   }
+}
+
+// 刷新库页面
+function refreshLibrary() {
+  loadDiariesFromGitHub();
 }
 
 // 页面加载时检查 token 并加载日记
