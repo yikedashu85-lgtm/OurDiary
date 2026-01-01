@@ -96,6 +96,39 @@
     </div>
   </div>
 
+  <!-- 评论模态框 -->
+  <div id="commentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💬 添加评论</h3>
+        <button class="modal-close" onclick="hideCommentModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="commentAuthor" class="form-label">评论者</label>
+          <select id="commentAuthor" class="form-select">
+            <option value="赵涵">赵涵</option>
+            <option value="赵卓然">卓然</option>
+            <option value="李昊叡">昊叡</option>
+            <option value="朱皓琳">皓琳</option>
+            <option value="郭菲菲">菲菲</option>
+            <option value="郭子怡">子怡</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="commentContent" class="form-label">评论内容</label>
+          <textarea id="commentContent" class="form-textarea" placeholder="写下你的评论..." rows="4"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideCommentModal()">取消</button>
+        <button class="btn btn-primary" onclick="submitComment()">发表评论</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../scripts/main.js"></script>
   <script src="scripts/today.js"></script>
 </body>

@@ -272,70 +272,180 @@ function shareDiary(index) {
   }
 }
 
-// 显示通知
-function showNotification(message, type = 'success') {
-  const notification = document.createElement('div');
-  notification.className = `notification notification-${type}`;
-  notification.innerHTML = `
-    <i class="ri-${type === 'success' ? 'check' : 'error-warning'}-line"></i>
-    <span>${message}</span>
-  `;
+// 显示日记
+function displayDiaries(diaries) {
+  const feed = document.getElementById('diary-feed');
   
-  // 添加通知样式
-  const style = document.createElement('style');
-  style.textContent = `
-    .notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: white;
-      padding: 1rem 1.5rem;
-      border-radius: var(--border-radius);
-      box-shadow: 0 8px 24px var(--shadow-medium);
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      z-index: 3000;
-      animation: slideIn 0.3s ease-out;
-    }
-    
-    .notification-success {
-      border-left: 4px solid var(--primary-color);
-    }
-    
-    .notification-error {
-      border-left: 4px solid #e74c3c;
-    }
-    
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-  `;
-  
-  if (!document.querySelector('style[data-notifications]')) {
-    style.setAttribute('data-notifications', '');
-    document.head.appendChild(style);
+  if (diaries.length === 0) {
+    feed.innerHTML = `
+      <div class="empty-state">
+        <i class="ri-quill-pen-line"></i>
+        <h3>今天还没有日记</h3>
+        <p>点击左侧"写日常"开始记录今天的故事</p>
+      </div>
+    `;
+    return;
   }
   
-  document.body.appendChild(notification);
+  // 渲染所有日记卡片
+  feed.innerHTML = diaries.map((diary, index) => renderDiaryCard(diary, index)).join('');
   
-  // 3秒后自动移除
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease-in';
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 300);
-  }, 3000);
+  // 更新所有评论显示
+  diaries.forEach(diary => {
+    const diaryId = `${diary.date}-${diary.author}`;
+    updateCommentsDisplay(diaryId);
+  });
 }
 
-// 刷新功能
+// 评论相关变量
+let currentDiaryId = null;
+let commentsData = {};
+
+// 显示评论模态框
+function showCommentModal(diaryId) {
+  currentDiaryId = diaryId;
+  document.getElementById('commentModal').style.display = 'flex';
+  document.getElementById('commentAuthor').value = '赵涵';
+  document.getElementById('commentContent').value = '';
+}
+
+// 隐藏评论模态框
+function hideCommentModal() {
+  document.getElementById('commentModal').style.display = 'none';
+  currentDiaryId = null;
+}
+
+// 提交评论
+function submitComment() {
+  const author = document.getElementById('commentAuthor').value;
+  const content = document.getElementById('commentContent').value.trim();
+  
+  if (!content) {
+    alert('请输入评论内容');
+    return;
+  }
+  
+  if (!currentDiaryId) {
+    alert('评论失败，请重试');
+    return;
+  }
+  
+  // 初始化评论数据
+  if (!commentsData[currentDiaryId]) {
+    commentsData[currentDiaryId] = [];
+  }
+  
+  // 添加新评论
+  const newComment = {
+    author: author,
+    content: content,
+    time: new Date().toISOString()
+  };
+  
+  commentsData[currentDiaryId].push(newComment);
+  
+  // 保存到本地存储
+  localStorage.setItem('diary_comments', JSON.stringify(commentsData));
+  
+  // 更新界面
+  updateCommentsDisplay(currentDiaryId);
+  
+  // 关闭模态框
+  hideCommentModal();
+  
+  // 显示成功提示
+  showNotification('评论发表成功！');
+}
+
+// 更新评论显示
+function updateCommentsDisplay(diaryId) {
+  const commentsContainer = document.getElementById(`comments-${diaryId}`);
+  if (!commentsContainer) return;
+  
+  const comments = commentsData[diaryId] || [];
+  const commentList = commentsContainer.querySelector('.comment-list');
+  
+  if (comments.length === 0) {
+    commentList.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>';
+  } else {
+    commentList.innerHTML = comments.map(comment => `
+      <div class="comment-item">
+        <div class="comment-avatar">${comment.author.charAt(0)}</div>
+        <div class="comment-content">
+          <div class="comment-author">${comment.author}</div>
+          <div class="comment-time">${formatCommentTime(comment.time)}</div>
+          <div class="comment-text">${comment.content}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+  
+  // 更新评论数量
+  const commentCount = commentsContainer.querySelector('.comment-count');
+  if (commentCount) {
+    commentCount.textContent = comments.length;
+  }
+}
+
+// 格式化评论时间
+function formatCommentTime(timeStr) {
+  const date = new Date(timeStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  
+  if (diffMins < 1) {
+    return '刚刚';
+  } else if (diffMins < 60) {
+    return `${diffMins}分钟前`;
+  } else if (diffMins < 1440) {
+    return `${Math.floor(diffMins / 60)}小时前`;
+  } else {
+    return date.toLocaleDateString('zh-CN');
+  }
+}
+
+// 加载评论数据
+function loadCommentsData() {
+  const saved = localStorage.getItem('diary_comments');
+  if (saved) {
+    try {
+      commentsData = JSON.parse(saved);
+    } catch (e) {
+      console.error('加载评论数据失败:', e);
+      commentsData = {};
+    }
+  }
+}
+
+// 显示通知
+function showNotification(message) {
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  notification.textContent = message;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-medium);
+    z-index: 3000;
+    animation: slideIn 0.3s ease-out;
+          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+            <i class="ri-add-line"></i>
+            添加评论
+          </button>
+        </div>
+        <div class="comment-list">
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
 function refreshFeed() {
   const refreshBtn = document.querySelector('.btn-secondary i');
   if (refreshBtn) {
@@ -350,6 +460,7 @@ function refreshFeed() {
 // 页面加载时执行
 window.addEventListener('load', function() {
   updateCurrentDate();
+  loadCommentsData(); // 加载评论数据
   loadTodayDiaries();
   
   // 每分钟更新一次时间显示
