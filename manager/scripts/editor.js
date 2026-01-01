@@ -241,6 +241,15 @@ function togglePreview() {
   }
 }
 
+// 更新预览内容
+function updatePreview() {
+  const editor = document.getElementById('editor');
+  const preview = document.getElementById('preview');
+  if (editor && preview) {
+    preview.innerHTML = marked.parse(editor.value);
+  }
+}
+
 // 添加旋转动画样式
 const style = document.createElement('style');
 style.textContent = `
@@ -274,7 +283,10 @@ function startAutoSave() {
 }
 
 // 监听输入变化，启动自动保存
-editor.addEventListener('input', startAutoSave);
+editor.addEventListener('input', function() {
+  startAutoSave();
+  updatePreview();
+});
 document.getElementById('title').addEventListener('input', startAutoSave);
 document.getElementById('author').addEventListener('change', startAutoSave);
 document.getElementById('date').addEventListener('change', startAutoSave);
