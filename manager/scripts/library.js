@@ -318,6 +318,13 @@ window.onclick = function(event) {
 
 // 刷新库页面
 function refreshLibrary() {
+  const refreshBtn = document.querySelector('.btn-secondary i');
+  if (refreshBtn) {
+    refreshBtn.classList.add('refresh-spin');
+    setTimeout(() => {
+      refreshBtn.classList.remove('refresh-spin');
+    }, 500);
+  }
   loadDiariesFromGitHub();
 }
 

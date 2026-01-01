@@ -414,6 +414,20 @@ body {
   line-height: 1.6;
 }
 
+/* 动画效果 */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.refresh-spin {
+  animation: spin 0.5s ease-in-out;
+}
+
 /* 模态框 */
 .modal {
   display: none;
