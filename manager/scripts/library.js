@@ -8,6 +8,10 @@ let commentsData = {};
 let currentDiaryId = null;
 
 let pendingExportFormat = null;
+let pendingExportIndexes = [];
+let pendingSingleExportIndex = null;
+let pendingSingleExportFormat = null;
+let pendingIncludeCommentsCallback = null;
 
 // 获取保存的 token（使用main.js中的函数）
 function getToken() {
@@ -265,7 +269,7 @@ function renderDiaries() {
       <div class="diary-content" id="content-${index}" style="display: none;">
         ${marked.parse(diary.content)}
       </div>
-      <div class="diary-comments" id="comments-${diaryId}" style="display: none;">
+      <div class="diary-comments" id="comments-${diaryId}">
         <div class="comments-header">
           <div class="comments-title">
             <i class="ri-chat-3-line"></i>
@@ -290,58 +294,20 @@ function renderDiaries() {
 // 切换日记展开/收起
 function toggleDiary(index) {
   const content = document.getElementById(`content-${index}`);
-  const diary = allDiaries[index];
-  const diaryId = diary ? getDiaryCommentId(diary) : null;
-  const comments = diaryId ? document.getElementById(`comments-${diaryId}`) : null;
   const isShowing = content.style.display !== 'none';
   
   if (isShowing) {
     content.style.display = 'none';
-    if (comments) comments.style.display = 'none';
   } else {
     content.style.display = 'block';
-    if (comments) comments.style.display = 'block';
   }
 }
 
 // 导出单个日记
 function exportSingleDiary(index, format) {
-  const diary = allDiaries[index];
-  const dateStr = diary.date.split('T')[0];
-  const filename = `${dateStr}-${diary.author}`;
-
-  const diaryId = getDiaryCommentId(diary);
-  const includeComments = confirm('是否一并导出评论区内容？');
-  const comments = includeComments ? (commentsData[diaryId] || []) : [];
-  
-  if (format === 'md') {
-    const metadata = `---\ntitle: ${diary.title}\nauthor: ${diary.author}\ndate: ${diary.date}\n---\n\n`;
-    const extra = includeComments ? buildCommentsMarkdown(comments) : '';
-    const blob = new Blob([metadata + diary.content + extra], {type:'text/markdown;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${filename}.md`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'txt') {
-    const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}${includeComments ? buildCommentsText(comments) : ''}`;
-    const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${filename}.txt`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  } else if (format === 'pdf') {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const metadata = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n`;
-    const commentText = includeComments ? buildCommentsText(comments) : '';
-    const fullText = metadata + diary.content.replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '') + commentText;
-    const lines = doc.splitTextToSize(fullText, 180);
-    doc.setFontSize(12);
-    doc.text(lines, 14, 20);
-    doc.save(`${filename}.pdf`);
-  }
+  pendingSingleExportIndex = index;
+  pendingSingleExportFormat = format;
+  showExportCommentConfirmModal();
 }
 
 // 导出所有日记
@@ -363,12 +329,15 @@ function openExportSelection(format) {
   const list = document.getElementById('exportSelectList');
   if (!modal || !list) return;
 
+  const selectAll = document.getElementById('exportSelectAll');
+  if (selectAll) selectAll.checked = true;
+
   list.innerHTML = allDiaries.map((diary, idx) => {
     const dateStr = String(diary.date || '').split('T')[0];
     const checkboxId = `export-cb-${idx}`;
     return `
       <div class="export-select-item" onclick="toggleExportItem(${idx})">
-        <input type="checkbox" id="${checkboxId}" data-index="${idx}" checked onclick="event.stopPropagation()">
+        <input type="checkbox" id="${checkboxId}" class="square-checkbox" data-index="${idx}" checked onclick="event.stopPropagation(); syncSelectAllCheckbox()">
         <div class="meta">
           <div class="title">${diary.title}</div>
           <div class="sub">${diary.author} · ${dateStr}</div>
@@ -384,24 +353,39 @@ function hideExportSelectModal() {
   const modal = document.getElementById('exportSelectModal');
   if (modal) modal.style.display = 'none';
   pendingExportFormat = null;
+  pendingExportIndexes = [];
+}
+
+function hideExportSelectModalKeepState() {
+  const modal = document.getElementById('exportSelectModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function toggleExportItem(index) {
   const cb = document.getElementById(`export-cb-${index}`);
   if (!cb) return;
   cb.checked = !cb.checked;
+  syncSelectAllCheckbox();
 }
 
-function selectAllExportItems() {
+function toggleSelectAllExportItems() {
+  const selectAll = document.getElementById('exportSelectAll');
+  if (!selectAll) return;
+  selectAll.checked = !selectAll.checked;
   document.querySelectorAll('#exportSelectList input[type="checkbox"]').forEach(cb => {
-    cb.checked = true;
+    cb.checked = selectAll.checked;
   });
 }
 
-function deselectAllExportItems() {
-  document.querySelectorAll('#exportSelectList input[type="checkbox"]').forEach(cb => {
-    cb.checked = false;
-  });
+function syncSelectAllCheckbox() {
+  const selectAll = document.getElementById('exportSelectAll');
+  if (!selectAll) return;
+  const items = Array.from(document.querySelectorAll('#exportSelectList input[type="checkbox"]'));
+  if (items.length === 0) {
+    selectAll.checked = false;
+    return;
+  }
+  selectAll.checked = items.every(cb => cb.checked);
 }
 
 function confirmExportSelection() {
@@ -415,8 +399,47 @@ function confirmExportSelection() {
     return;
   }
 
-  const includeComments = confirm('是否一并导出评论区内容？');
-  exportSelectedDiaries(pendingExportFormat, selected, includeComments);
+  pendingExportIndexes = selected;
+  hideExportSelectModalKeepState();
+  showExportCommentConfirmModal();
+}
+
+function showExportCommentConfirmModal() {
+  const modal = document.getElementById('exportCommentConfirmModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function hideExportCommentConfirmModal() {
+  const modal = document.getElementById('exportCommentConfirmModal');
+  if (modal) modal.style.display = 'none';
+
+  if (pendingSingleExportIndex !== null || pendingSingleExportFormat) {
+    pendingSingleExportIndex = null;
+    pendingSingleExportFormat = null;
+  }
+
+  if (pendingExportFormat && pendingExportIndexes.length > 0) {
+    const exportSelectModal = document.getElementById('exportSelectModal');
+    if (exportSelectModal) exportSelectModal.style.display = 'flex';
+  }
+}
+
+function confirmExportWithComments(includeComments) {
+  if (pendingSingleExportIndex !== null && pendingSingleExportFormat) {
+    const diary = allDiaries[pendingSingleExportIndex];
+    if (diary) {
+      exportDiaryFile(diary, pendingSingleExportFormat, includeComments);
+    }
+    pendingSingleExportIndex = null;
+    pendingSingleExportFormat = null;
+    hideExportCommentConfirmModal();
+    return;
+  }
+
+  if (pendingExportFormat && pendingExportIndexes.length > 0) {
+    exportSelectedDiaries(pendingExportFormat, pendingExportIndexes, includeComments);
+  }
+  hideExportCommentConfirmModal();
   hideExportSelectModal();
 }
 
@@ -443,43 +466,47 @@ function exportSelectedDiaries(format, selectedIndexes, includeComments) {
     const diary = allDiaries[idx];
     if (!diary) return;
 
-    const dateStr = String(diary.date || '').split('T')[0];
-    const filename = `${dateStr}-${diary.author}-${diary.title}`.replace(/[\\/:*?"<>|]/g, '_');
-
-    const diaryId = getDiaryCommentId(diary);
-    const comments = includeComments ? (commentsData[diaryId] || []) : [];
-
-    if (format === 'md') {
-      const metadata = `---\ntitle: ${diary.title}\nauthor: ${diary.author}\ndate: ${diary.date}\n---\n\n`;
-      const extra = includeComments ? buildCommentsMarkdown(comments) : '';
-      const blob = new Blob([metadata + diary.content + extra], { type: 'text/markdown;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${filename}.md`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } else if (format === 'txt') {
-      const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}${includeComments ? buildCommentsText(comments) : ''}`;
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${filename}.txt`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    } else if (format === 'pdf') {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const metadata = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n`;
-      const commentText = includeComments ? buildCommentsText(comments) : '';
-      const fullText = metadata + String(diary.content || '').replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '') + commentText;
-      const lines = doc.splitTextToSize(fullText, 180);
-      doc.setFontSize(12);
-      doc.text(lines, 14, 20);
-      doc.save(`${filename}.pdf`);
-    }
+    exportDiaryFile(diary, format, includeComments);
   });
 
   showNotification('已开始导出所选日记');
+}
+
+function exportDiaryFile(diary, format, includeComments) {
+  const dateStr = String(diary.date || '').split('T')[0];
+  const filename = `${dateStr}-${diary.author}-${diary.title}`.replace(/[\\/:*?"<>|]/g, '_');
+
+  const diaryId = getDiaryCommentId(diary);
+  const comments = includeComments ? (commentsData[diaryId] || []) : [];
+
+  if (format === 'md') {
+    const metadata = `---\ntitle: ${diary.title}\nauthor: ${diary.author}\ndate: ${diary.date}\n---\n\n`;
+    const extra = includeComments ? buildCommentsMarkdown(comments) : '';
+    const blob = new Blob([metadata + diary.content + extra], { type: 'text/markdown;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (format === 'txt') {
+    const text = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n${diary.content}${includeComments ? buildCommentsText(comments) : ''}`;
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (format === 'pdf') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const metadata = `标题: ${diary.title}\n作者: ${diary.author}\n日期: ${diary.date}\n\n`;
+    const commentText = includeComments ? buildCommentsText(comments) : '';
+    const fullText = metadata + String(diary.content || '').replace(/#{1,6}\s+/g, '').replace(/\*\*/g, '') + commentText;
+    const lines = doc.splitTextToSize(fullText, 180);
+    doc.setFontSize(12);
+    doc.text(lines, 14, 20);
+    doc.save(`${filename}.pdf`);
+  }
 }
 
 function showCommentModal(diaryId) {

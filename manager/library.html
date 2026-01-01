@@ -69,15 +69,15 @@
               <div id="exportDropdown" class="dropdown-menu">
                 <a href="#" onclick="openExportSelection('md'); return false;">
                   <i class="ri-markdown-line"></i>
-                  全部导出为 Markdown
+                  导出为 Markdown
                 </a>
                 <a href="#" onclick="openExportSelection('txt'); return false;">
                   <i class="ri-file-text-line"></i>
-                  全部导出为文本
+                  导出为文本
                 </a>
                 <a href="#" onclick="openExportSelection('pdf'); return false;">
                   <i class="ri-file-pdf-line"></i>
-                  全部导出为 PDF
+                  导出为 PDF
                 </a>
               </div>
             </div>
@@ -132,11 +132,11 @@
           <label for="commentAuthor" class="form-label">评论者</label>
           <select id="commentAuthor" class="form-select">
             <option value="赵涵">赵涵</option>
-            <option value="赵卓然">卓然</option>
-            <option value="李昊叡">昊叡</option>
-            <option value="朱皓琳">皓琳</option>
-            <option value="郭菲菲">菲菲</option>
-            <option value="郭子怡">子怡</option>
+            <option value="赵卓然">赵卓然</option>
+            <option value="李昊叡">李昊叡</option>
+            <option value="朱皓琳">朱皓琳</option>
+            <option value="郭菲菲">郭菲菲</option>
+            <option value="郭子怡">郭子怡</option>
           </select>
         </div>
         <div class="form-group">
@@ -160,15 +160,33 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="export-select-actions">
-          <button class="btn btn-secondary" onclick="selectAllExportItems()">全选</button>
-          <button class="btn btn-secondary" onclick="deselectAllExportItems()">全不选</button>
+        <div class="select-all-row" onclick="toggleSelectAllExportItems()">
+          <input type="checkbox" id="exportSelectAll" class="square-checkbox" onclick="event.stopPropagation(); event.preventDefault(); toggleSelectAllExportItems()">
+          <span>全选</span>
         </div>
         <div id="exportSelectList" class="export-select-list"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="hideExportSelectModal()">取消</button>
         <button class="btn btn-primary" onclick="confirmExportSelection()">导出所选</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="exportCommentConfirmModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>📌 导出设置</h3>
+        <button class="modal-close" onclick="hideExportCommentConfirmModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="color: var(--text-secondary); margin: 0;">是否一并导出评论内容？</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="confirmExportWithComments(false)">不包含评论</button>
+        <button class="btn btn-primary" onclick="confirmExportWithComments(true)">包含评论</button>
       </div>
     </div>
   </div>
