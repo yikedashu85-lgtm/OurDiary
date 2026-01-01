@@ -131,5 +131,61 @@
 
   <script src="../scripts/main.js"></script>
   <script src="scripts/today.js"></script>
+  
+  <!-- 直接添加测试脚本 -->
+  <script>
+    // 等待页面加载完成后直接显示测试评论功能
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM加载完成，准备显示测试评论功能');
+      
+      setTimeout(function() {
+        const feed = document.getElementById('diary-feed');
+        if (feed) {
+          console.log('找到feed元素，注入测试内容');
+          feed.innerHTML = `
+            <div class="diary-card">
+              <div class="diary-header">
+                <div class="diary-author">
+                  <div class="author-avatar">赵</div>
+                  <div class="author-info">
+                    <div class="author-name">赵涵</div>
+                    <div class="diary-time">2026-01-02</div>
+                  </div>
+                </div>
+                <div class="diary-actions">
+                  <button class="diary-action-btn" title="导出">
+                    <i class="ri-download-2-line"></i>
+                  </button>
+                </div>
+              </div>
+              
+              <h3 class="diary-title">测试日记</h3>
+              <div class="diary-content">这是一个测试日记，用于展示评论功能。</div>
+              
+              <div class="diary-comments" id="comments-test">
+                <div class="comments-header">
+                  <div class="comments-title">
+                    <i class="ri-chat-3-line"></i>
+                    评论
+                    <span class="comment-count">0</span>
+                  </div>
+                  <button class="add-comment-btn" onclick="alert('评论功能测试！')">
+                    <i class="ri-add-line"></i>
+                    添加评论
+                  </button>
+                </div>
+                <div class="comment-list">
+                  <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
+                </div>
+              </div>
+            </div>
+          `;
+          console.log('测试内容注入完成');
+        } else {
+          console.error('未找到feed元素');
+        }
+      }, 1000);
+    });
+  </script>
 </body>
 </html>
