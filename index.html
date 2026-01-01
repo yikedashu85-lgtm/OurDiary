@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OurDiary · 首页</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 左侧导航栏 -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="ri-book-2-line"></i>
+          <span>OurDiary</span>
+        </div>
+      </div>
+      
+      <div class="sidebar-menu">
+        <a href="index.html" class="menu-item active">
+          <i class="ri-home-4-line"></i>
+          <span>首页</span>
+        </a>
+        <a href="manager/index.html" class="menu-item">
+          <i class="ri-edit-2-line"></i>
+          <span>写日常</span>
+        </a>
+        <a href="manager/today.html" class="menu-item">
+          <i class="ri-calendar-line"></i>
+          <span>今天的事</span>
+        </a>
+        <a href="manager/library.html" class="menu-item">
+          <i class="ri-book-line"></i>
+          <span>日记库</span>
+        </a>
+      </div>
+      
+      <div class="sidebar-footer">
+        <button class="token-btn" onclick="showTokenModal()">
+          <i class="ri-key-2-line"></i>
+          <span>重新设置Token</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- 主内容区域 -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        <!-- 欢迎区域 -->
+        <section class="hero-section">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              《日常的日常》
+              <span class="hero-subtitle">2016 - 2026</span>
+            </h1>
+            <p class="hero-description">
+              十年时光，记录每一个珍贵的日常瞬间
+            </p>
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="window.location.href='manager/index.html'">
+                <i class="ri-edit-line"></i>
+                写日常
+              </button>
+              <button class="btn btn-secondary" onclick="window.location.href='manager/library.html'">
+                <i class="ri-book-open-line"></i>
+                翻阅日记
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 特色功能卡片 -->
+        <section class="features-section">
+          <div class="features-grid">
+            <div class="feature-card card-pink">
+              <div class="feature-icon">
+                <i class="ri-quill-pen-line"></i>
+              </div>
+              <h3>纸墨传情</h3>
+              <p>像在精美的信纸上书写，让文字带上温度。</p>
+            </div>
+            
+            <div class="feature-card card-orange">
+              <div class="feature-icon">
+                <i class="ri-shield-check-line"></i>
+              </div>
+              <h3>私密守护</h3>
+              <p>只有被邀请的好友才能开启这扇大门。</p>
+            </div>
+            
+            <div class="feature-card card-purple">
+              <div class="feature-icon">
+                <i class="ri-smartphone-line"></i>
+              </div>
+              <h3>随时随地</h3>
+              <p>无论是手机还是电脑，记录从不缺席。</p>
+            </div>
+            
+            <div class="feature-card card-green">
+              <div class="feature-icon">
+                <i class="ri-time-line"></i>
+              </div>
+              <h3>时光胶囊</h3>
+              <p>记录每一天的心情，见证成长的轨迹。</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 最近日记预览 -->
+        <section class="recent-section">
+          <h2 class="section-title">最近的日记</h2>
+          <div class="recent-cards" id="recentDiaries">
+            <div class="recent-card">
+              <div class="recent-meta">
+                <span class="recent-author">赵涵</span>
+                <span class="recent-date">2026-01-01</span>
+              </div>
+              <h3 class="recent-title">新年的第一天</h3>
+              <p class="recent-excerpt">今天是新年的第一天，阳光很好...</p>
+            </div>
+            <div class="recent-card">
+              <div class="recent-meta">
+                <span class="recent-author">李昊叡</span>
+                <span class="recent-date">2026-01-01</span>
+              </div>
+              <h3 class="recent-title">元旦聚会</h3>
+              <p class="recent-excerpt">和朋友们一起跨年，很开心...</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Token 设置模态框 -->
+  <div id="tokenModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>🔐 设置 GitHub Token</h3>
+        <button class="modal-close" onclick="hideTokenModal()">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>请输入您的 GitHub Personal Access Token（需要 repo 权限）。Token 将保存在本地，下次使用时无需重复输入。</p>
+        <input type="password" id="tokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="token-input">
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideTokenModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveToken()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="scripts/main.js"></script>
+</body>
+</html>
