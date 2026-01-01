@@ -197,7 +197,9 @@ async function loadTodayDiaries() {
           headers: { Authorization: `token ${token}` }
         });
         const encryptedContent = await fileResponse.text();
-        const decryptedContent = decryptContent(encryptedContent, keyHash);
+        // 解码Base64内容（匹配index.html的编码方式）
+        const decodedContent = decodeURIComponent(escape(atob(encryptedContent)));
+        const decryptedContent = decryptContent(decodedContent, keyHash);
         
         // 解析 front matter
         const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);

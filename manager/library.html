@@ -186,8 +186,11 @@ async function loadDiariesFromGitHub() {
         });
         const encryptedContent = await fileResponse.text();
         
+        // 解码Base64内容（匹配index.html的编码方式）
+        const decodedContent = decodeURIComponent(escape(atob(encryptedContent)));
+        
         // 尝试解密
-        const decryptedContent = decryptContent(encryptedContent, keyHash);
+        const decryptedContent = decryptContent(decodedContent, keyHash);
         
         // 解析 front matter
         const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
