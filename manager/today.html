@@ -152,9 +152,27 @@ function decryptContent(encryptedContent, keyHash) {
   }
 }
 
-// 获取今天的日期字符串 yyyy-mm-dd
+// 获取今天的日期字符串 yyyy-mm-dd（使用本地时间）
 function todayStr() {
-  return new Date().toISOString().slice(0,10);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// 获取当前时间显示（包含时区信息）
+function getCurrentTimeDisplay() {
+  const now = new Date();
+  return now.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short'
+  });
 }
 
 // 从 GitHub 加载今天的日记
@@ -166,7 +184,8 @@ async function loadTodayDiaries() {
   }
 
   const feed = document.getElementById('diary-feed');
-  feed.innerHTML = '<p style="text-align:center;color:#666;">正在加载...</p>';
+  const today = todayStr();
+  feed.innerHTML = `<p style="text-align:center;color:#666;">正在加载今天的日记 (${today})...</p>`;
 
   try {
     const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts`, {
@@ -178,11 +197,22 @@ async function loadTodayDiaries() {
     }
 
     const files = await response.json();
-    const today = todayStr();
-    const todayFiles = files.filter(f => f.name.endsWith('.md') && f.name.startsWith(today));
+    
+    // 更精确的文件匹配：以今天的日期开头，以.md结尾
+    const todayFiles = files.filter(f => {
+      const isMd = f.name.endsWith('.md');
+      const startsWithToday = f.name.startsWith(today);
+      return isMd && startsWithToday;
+    });
+    
+    console.log(`今天日期: ${today}, 找到 ${todayFiles.length} 个今天的日记文件:`, todayFiles.map(f => f.name));
     
     if (todayFiles.length === 0) {
-      feed.innerHTML = '<p style="text-align:center;color:#666;">今天还没有日记~</p>';
+      feed.innerHTML = `
+        <p style="text-align:center;color:#666;">
+          今天 (${today}) 还没有日记~<br>
+          <small>当前时间: ${getCurrentTimeDisplay()}</small>
+        </p>`;
       return;
     }
 
@@ -260,8 +290,22 @@ function refreshFeed() {
   loadTodayDiaries();
 }
 
-// 每30秒自动刷新一次（可选）
-// setInterval(refreshFeed, 30000);
+// 每分钟检查一次日期是否变化，自动刷新到新的一天
+let lastDate = todayStr();
+function checkDateChange() {
+  const currentDate = todayStr();
+  if (currentDate !== lastDate) {
+    console.log(`日期已从 ${lastDate} 变为 ${currentDate}，自动刷新页面`);
+    lastDate = currentDate;
+    loadTodayDiaries();
+  }
+}
+
+// 每30秒检查一次日期变化
+setInterval(checkDateChange, 30000);
+
+// 每5分钟自动刷新一次内容（获取新日记）
+setInterval(refreshFeed, 300000);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
