@@ -276,6 +276,8 @@ function shareDiary(index) {
 function displayDiaries(diaries) {
   const feed = document.getElementById('diary-feed');
   
+  console.log('显示日记，数量:', diaries.length);
+  
   if (diaries.length === 0) {
     feed.innerHTML = `
       <div class="empty-state">
@@ -287,14 +289,20 @@ function displayDiaries(diaries) {
     return;
   }
   
+  console.log('开始渲染日记卡片...');
+  
   // 渲染所有日记卡片
   feed.innerHTML = diaries.map((diary, index) => renderDiaryCard(diary, index)).join('');
+  
+  console.log('日记卡片渲染完成，开始更新评论显示...');
   
   // 更新所有评论显示
   diaries.forEach(diary => {
     const diaryId = `${diary.date}-${diary.author}`;
     updateCommentsDisplay(diaryId);
   });
+  
+  console.log('评论显示更新完成');
 }
 
 // 评论相关变量
@@ -484,3 +492,47 @@ setInterval(checkDateChange, 30000);
 
 // 每5分钟自动刷新一次内容（获取新日记）
 setInterval(refreshFeed, 300000);
+
+// 渲染日记卡片（包含评论功能）
+function renderDiaryCard(diary, index) {
+  const diaryId = `${diary.date}-${diary.author}`;
+  
+  return `
+    <div class="diary-card">
+      <div class="diary-header">
+        <div class="diary-author">
+          <div class="author-avatar">${diary.author.charAt(0)}</div>
+          <div class="author-info">
+            <div class="author-name">${diary.author}</div>
+            <div class="diary-time">${formatDate(diary.date)}</div>
+          </div>
+        </div>
+        <div class="diary-actions">
+          <button class="diary-action-btn" onclick="exportDiary('${diary.date}', '${diary.author}')" title="导出">
+            <i class="ri-download-2-line"></i>
+          </button>
+        </div>
+      </div>
+      
+      <h3 class="diary-title">${diary.title}</h3>
+      <div class="diary-content">${diary.content}</div>
+      
+      <div class="diary-comments" id="comments-${diaryId}">
+        <div class="comments-header">
+          <div class="comments-title">
+            <i class="ri-chat-3-line"></i>
+            评论
+            <span class="comment-count">${(commentsData[diaryId] || []).length}</span>
+          </div>
+          <button class="add-comment-btn" onclick="showCommentModal('${diaryId}')">
+            <i class="ri-add-line"></i>
+            添加评论
+          </button>
+        </div>
+        <div class="comment-list">
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">暂无评论</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
