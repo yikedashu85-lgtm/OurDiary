@@ -278,15 +278,16 @@ function displayDiaries(diaries) {
   
   console.log('显示日记，数量:', diaries.length);
   
+  // 如果没有日记，创建一个测试日记来显示评论功能
   if (diaries.length === 0) {
-    feed.innerHTML = `
-      <div class="empty-state">
-        <i class="ri-quill-pen-line"></i>
-        <h3>今天还没有日记</h3>
-        <p>点击左侧"写日常"开始记录今天的故事</p>
-      </div>
-    `;
-    return;
+    console.log('没有日记，创建测试日记');
+    const testDiary = {
+      title: '测试日记',
+      author: '赵涵',
+      date: todayStr(),
+      content: '这是一个测试日记，用于展示评论功能。'
+    };
+    diaries = [testDiary];
   }
   
   console.log('开始渲染日记卡片...');
