@@ -6,12 +6,20 @@
 <title>OurDiary · 写日记</title>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f7f4; }
 header { height:56px; background:#5b7052; color:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 20px; box-shadow:0 2px 8px rgba(0,0,0,.15);}
 header .title { font-weight:600; }
 header button { background:#fff; color:#5b7052; border:none; padding:6px 14px; border-radius:16px; cursor:pointer; font-size:13px; margin-left:8px;}
+header .export-dropdown { position: relative; display: inline-block; margin-left: 8px; }
+header .export-dropdown button { margin-left: 0; }
+header .export-dropdown-content { display: none; position: absolute; right: 0; background-color: #fff; min-width: 120px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 8px; overflow: hidden; margin-top: 4px; }
+header .export-dropdown-content.show { display: block; }
+header .export-dropdown-content a { color: #5b7052; padding: 10px 16px; text-decoration: none; display: block; font-size: 13px; }
+header .export-dropdown-content a:hover { background-color: #f0f0f0; }
 .main { height: calc(100% - 56px); display:flex; flex-direction: column;}
 .editor-container { flex:1; display:flex; }
 .left-panel { width: 60%; padding:16px; box-sizing:border-box; background:#fff; border-right:1px solid #ddd; display:flex; flex-direction:column;}
@@ -104,7 +112,14 @@ header button { background:#fff; color:#5b7052; border:none; padding:6px 14px; b
 <header>
   <div class="title">《日常的日常》 · 写日记</div>
   <div>
-    <button onclick="downloadDiary()">导出 Markdown</button>
+    <div class="export-dropdown">
+      <button onclick="toggleExportDropdown()">导出 ▼</button>
+      <div id="exportDropdown" class="export-dropdown-content">
+        <a href="#" onclick="exportDiary('md'); return false;">Markdown (.md)</a>
+        <a href="#" onclick="exportDiary('txt'); return false;">纯文本 (.txt)</a>
+        <a href="#" onclick="exportDiary('pdf'); return false;">PDF (.pdf)</a>
+      </div>
+    </div>
     <button onclick="uploadToGitHub()">保存到 GitHub</button>
     <button onclick="showTokenModal()">重新设置 Token</button>
   </div>
@@ -154,19 +169,98 @@ function render() { preview.innerHTML = marked.parse(editor.value); }
 editor.addEventListener('input', render);
 render();
 
-// 导出 Markdown
-function downloadDiary() {
+// 加密/解密工具函数
+function deriveKeyFromToken(token) {
+  // 使用 token 派生一个固定的密钥（使用 SHA256）
+  const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
+  return hash;
+}
+
+function encryptContent(content, keyHash) {
+  // 使用固定 IV 进行 AES-CBC 加密
+  const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 固定 IV
+  const encrypted = CryptoJS.AES.encrypt(content, keyHash, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  return encrypted.toString();
+}
+
+function decryptContent(encryptedContent, keyHash) {
+  try {
+    const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000'); // 固定 IV
+    const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    const result = decrypted.toString(CryptoJS.enc.Utf8);
+    if (!result) {
+      throw new Error('解密失败');
+    }
+    return result;
+  } catch(e) {
+    throw new Error('解密失败，请检查 token 是否正确');
+  }
+}
+
+// 导出下拉菜单
+function toggleExportDropdown() {
+  const dropdown = document.getElementById('exportDropdown');
+  dropdown.classList.toggle('show');
+}
+
+// 点击外部关闭下拉菜单
+window.onclick = function(event) {
+  if (!event.target.matches('.export-dropdown button')) {
+    const dropdowns = document.getElementsByClassName('export-dropdown-content');
+    for (let i = 0; i < dropdowns.length; i++) {
+      if (dropdowns[i].classList.contains('show')) {
+        dropdowns[i].classList.remove('show');
+      }
+    }
+  }
+}
+
+// 导出日记
+async function exportDiary(format) {
+  const dropdown = document.getElementById('exportDropdown');
+  dropdown.classList.remove('show');
+  
   const title = document.getElementById('title').value;
   const author = document.getElementById('author').value;
   const date = document.getElementById('date').value;
   const content = editor.value;
-  const metadata = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n`;
-  const blob = new Blob([metadata+content], {type:'text/markdown;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${date.split('T')[0]}-${author}.md`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const dateStr = date.split('T')[0];
+  const filename = `${dateStr}-${author}`;
+  
+  if (format === 'md') {
+    const metadata = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n`;
+    const blob = new Blob([metadata + content], {type:'text/markdown;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (format === 'txt') {
+    const text = `标题: ${title}\n作者: ${author}\n日期: ${date}\n\n${content}`;
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${filename}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } else if (format === 'pdf') {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const metadata = `标题: ${title}\n作者: ${author}\n日期: ${date}\n\n`;
+    const fullText = metadata + content;
+    const lines = doc.splitTextToSize(fullText, 180);
+    doc.setFontSize(12);
+    doc.text(lines, 14, 20);
+    doc.save(`${filename}.pdf`);
+  }
 }
 
 // Token 管理
@@ -225,7 +319,7 @@ window.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// 上传到 GitHub
+// 上传到 GitHub（加密内容）
 async function uploadToGitHub() {
   const token = getToken();
   if(!token) {
@@ -245,6 +339,10 @@ async function uploadToGitHub() {
   const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
 
   try {
+    // 加密内容
+    const keyHash = deriveKeyFromToken(token);
+    const encryptedContent = encryptContent(markdown, keyHash);
+    
     // 先检查文件是否存在
     let sha = null;
     const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
@@ -255,17 +353,18 @@ async function uploadToGitHub() {
       sha = data.sha; // 更新已存在文件
     }
 
+    // 上传加密后的内容
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
       method: 'PUT',
       headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: `Add diary ${title}`,
-        content: btoa(unescape(encodeURIComponent(markdown))),
+        content: btoa(unescape(encodeURIComponent(encryptedContent))),
         sha: sha
       })
     });
 
-    if(res.ok) alert("上传成功！");
+    if(res.ok) alert("上传成功！内容已加密保存。");
     else {
       const err = await res.json();
       alert("上传失败: " + JSON.stringify(err));

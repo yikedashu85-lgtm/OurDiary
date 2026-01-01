@@ -91,47 +91,135 @@ header .buttons button {
 <div id="diary-feed"></div>
 
 <script>
-// LocalStorage key
-const STORAGE_KEY = 'ourdiary_entries';
+const TOKEN_STORAGE_KEY = 'github_token';
+const owner = "yikedashu85-lgtm";
+const repo = "OurDiary";
+
+// 获取保存的 token
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY);
+}
+
+// 加密/解密工具函数
+function deriveKeyFromToken(token) {
+  const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
+  return hash;
+}
+
+function decryptContent(encryptedContent, keyHash) {
+  try {
+    const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
+    const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
+      iv: iv,
+      mode: CryptoJS.mode.CBC,
+      padding: CryptoJS.pad.Pkcs7
+    });
+    const result = decrypted.toString(CryptoJS.enc.Utf8);
+    if (!result) {
+      throw new Error('解密失败');
+    }
+    return result;
+  } catch(e) {
+    throw new Error('解密失败');
+  }
+}
 
 // 获取今天的日期字符串 yyyy-mm-dd
 function todayStr() {
   return new Date().toISOString().slice(0,10);
 }
 
-// 渲染日记
-function renderFeed() {
-  const feed = document.getElementById('diary-feed');
-  feed.innerHTML = '';
-  const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-
-  // 筛选今天的日记
-  const today = todayStr();
-  const entries = Object.values(data).filter(e => e.date.startsWith(today));
-
-  // 按时间倒序
-  entries.sort((a,b)=>b.date.localeCompare(a.date));
-
-  if(entries.length===0) {
-    feed.innerHTML = `<p style="text-align:center;color:#666;">今天还没有日记~</p>`;
+// 从 GitHub 加载今天的日记
+async function loadTodayDiaries() {
+  const token = getToken();
+  if (!token) {
+    document.getElementById('diary-feed').innerHTML = '<p style="text-align:center;color:#666;">请先设置 GitHub Token</p>';
     return;
   }
 
-  entries.forEach(e=>{
-    const card = document.createElement('div');
-    card.className = 'diary-card';
-    card.innerHTML = `
-      <div class="author">${e.author}</div>
-      <div class="date">${new Date(e.date).toLocaleTimeString()}</div>
-      <div class="content">${marked.parse(e.content)}</div>
-    `;
-    feed.appendChild(card);
-  });
+  const feed = document.getElementById('diary-feed');
+  feed.innerHTML = '<p style="text-align:center;color:#666;">正在加载...</p>';
+
+  try {
+    const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts`, {
+      headers: { Authorization: `token ${token}` }
+    });
+
+    if (!response.ok) {
+      throw new Error('无法访问 GitHub 仓库');
+    }
+
+    const files = await response.json();
+    const today = todayStr();
+    const todayFiles = files.filter(f => f.name.endsWith('.md') && f.name.startsWith(today));
+    
+    if (todayFiles.length === 0) {
+      feed.innerHTML = '<p style="text-align:center;color:#666;">今天还没有日记~</p>';
+      return;
+    }
+
+    feed.innerHTML = '';
+    const keyHash = deriveKeyFromToken(token);
+    const entries = [];
+
+    // 获取所有今天的文件内容
+    for (const file of todayFiles) {
+      try {
+        const fileResponse = await fetch(file.download_url, {
+          headers: { Authorization: `token ${token}` }
+        });
+        const encryptedContent = await fileResponse.text();
+        const decryptedContent = decryptContent(encryptedContent, keyHash);
+        
+        // 解析 front matter
+        const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
+        if (frontMatterMatch) {
+          const metadata = {};
+          frontMatterMatch[1].split('\n').forEach(line => {
+            const [key, ...valueParts] = line.split(':');
+            if (key && valueParts.length > 0) {
+              metadata[key.trim()] = valueParts.join(':').trim();
+            }
+          });
+          
+          entries.push({
+            author: metadata.author || '未知',
+            date: metadata.date || file.name,
+            content: frontMatterMatch[2]
+          });
+        }
+      } catch(e) {
+        console.error(`无法解密文件 ${file.name}:`, e);
+      }
+    }
+
+    // 按时间倒序
+    entries.sort((a,b)=>new Date(b.date) - new Date(a.date));
+
+    if(entries.length === 0) {
+      feed.innerHTML = '<p style="text-align:center;color:#666;">今天还没有日记~</p>';
+      return;
+    }
+
+    entries.forEach(e=>{
+      const card = document.createElement('div');
+      card.className = 'diary-card';
+      card.innerHTML = `
+        <div class="author">${e.author}</div>
+        <div class="date">${new Date(e.date).toLocaleTimeString()}</div>
+        <div class="content">${marked.parse(e.content)}</div>
+      `;
+      feed.appendChild(card);
+    });
+  } catch(e) {
+    feed.innerHTML = `<p style="text-align:center;color:#d32f2f;">加载失败: ${e.message}</p>`;
+  }
 }
 
-window.addEventListener('load', renderFeed);
+window.addEventListener('load', loadTodayDiaries);
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
 </body>
 </html>
