@@ -193,12 +193,13 @@ async function loadTodayDiaries() {
     // 获取所有今天的文件内容
     for (const file of todayFiles) {
       try {
-        const fileResponse = await fetch(file.download_url, {
+        const fileResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${file.name}`, {
           headers: { Authorization: `token ${token}` }
         });
-        const encryptedContent = await fileResponse.text();
+        const fileData = await fileResponse.json();
+        const encryptedContent = atob(fileData.content);
         // 解码Base64内容（匹配index.html的编码方式）
-        const decodedContent = decodeURIComponent(escape(atob(encryptedContent)));
+        const decodedContent = decodeURIComponent(escape(encryptedContent));
         const decryptedContent = decryptContent(decodedContent, keyHash);
         
         // 解析 front matter
