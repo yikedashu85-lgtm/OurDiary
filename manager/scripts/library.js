@@ -332,6 +332,7 @@ function renderDiaries() {
       });
     }
 
+    loadCommentsFromGitHub(diaryId);
     updateCommentsDisplay(diaryId);
   });
 }
@@ -725,6 +726,9 @@ function submitComment() {
   updateCommentsDisplay(currentDiaryId);
   hideCommentModal();
   showNotification('评论发表成功！');
+
+  // 同步评论到 GitHub
+  syncCommentsToGitHub(currentDiaryId);
 }
 
 function updateCommentsDisplay(diaryId) {
@@ -797,3 +801,67 @@ window.addEventListener('load', function() {
     searchInput.addEventListener('input', renderDiaries);
   }
 });
+
+// 评论同步到 GitHub
+async function syncCommentsToGitHub(diaryId) {
+  const token = getToken();
+  if (!token) return;
+
+  const comments = commentsData[diaryId] || [];
+  const content = JSON.stringify(comments, null, 2);
+  const path = `posts/comments/${diaryId}.json`;
+
+  try {
+    // 先检查文件是否存在
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if (getRes.status === 200) {
+      const data = await getRes.json();
+      sha = data.sha;
+    }
+
+    // 上传评论文件
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Update comments for ${diaryId}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: sha
+      })
+    });
+
+    if (!res.ok) {
+      console.error('评论同步失败:', await res.text());
+    }
+  } catch (e) {
+    console.error('评论同步异常:', e);
+  }
+}
+
+// 从 GitHub 加载评论
+async function loadCommentsFromGitHub(diaryId) {
+  const token = getToken();
+  if (!token) return;
+
+  const path = `posts/comments/${diaryId}.json`;
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      const content = atob(data.content);
+      const comments = JSON.parse(content);
+      commentsData[diaryId] = comments;
+      persistCommentsData(); // 同步到本地
+      updateCommentsDisplay(diaryId);
+    }
+  } catch (e) {
+    // 文件不存在或解析失败，忽略
+  }
+}

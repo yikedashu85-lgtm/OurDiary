@@ -310,6 +310,7 @@ function displayDiaries(diaries) {
   diaries.forEach((diary) => {
     const diaryKey = diary.id || `${diary.date}-${diary.author}`;
     const safeId = toSafeId(diaryKey);
+    loadCommentsFromGitHub(safeId);
     updateCommentsDisplay(safeId);
   });
 }
@@ -366,6 +367,9 @@ function submitComment() {
   
   // 更新界面
   updateCommentsDisplay(currentDiaryId);
+  
+  // 同步到 GitHub
+  syncCommentsToGitHub(currentDiaryId);
   
   // 关闭模态框
   hideCommentModal();
@@ -494,6 +498,68 @@ function checkDateChange() {
 
 // 每30秒检查一次日期变化
 setInterval(checkDateChange, 30000);
+
+// 评论同步到 GitHub
+async function syncCommentsToGitHub(diaryId) {
+  const token = getToken();
+  if (!token) return;
+
+  const comments = commentsData[diaryId] || [];
+  const content = JSON.stringify(comments, null, 2);
+  const path = `posts/comments/${diaryId}.json`;
+
+  try {
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if (getRes.status === 200) {
+      const data = await getRes.json();
+      sha = data.sha;
+    }
+
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `Update comments for ${diaryId}`,
+        content: btoa(unescape(encodeURIComponent(content))),
+        sha: sha
+      })
+    });
+
+    if (!res.ok) {
+      console.error('评论同步失败:', await res.text());
+    }
+  } catch (e) {
+    console.error('评论同步异常:', e);
+  }
+}
+
+// 从 GitHub 加载评论
+async function loadCommentsFromGitHub(diaryId) {
+  const token = getToken();
+  if (!token) return;
+
+  const path = `posts/comments/${diaryId}.json`;
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+
+    if (res.status === 200) {
+      const data = await res.json();
+      const content = atob(data.content);
+      const comments = JSON.parse(content);
+      commentsData[diaryId] = comments;
+      localStorage.setItem('diary_comments', JSON.stringify(commentsData));
+      updateCommentsDisplay(diaryId);
+    }
+  } catch (e) {
+    // 文件不存在或解析失败，忽略
+  }
+}
 
 // 每5分钟自动刷新一次内容（获取新日记）
 setInterval(refreshFeed, 300000);
