@@ -184,7 +184,9 @@ function renderLibraryByMonth() {
   const filteredDiariesByMonth = organizeDiariesByMonth(filteredDiaries);
   const yearMonthList = getYearMonthListFromData(filteredDiariesByMonth);
   
-  diaryList.innerHTML = `
+  console.log('yearMonthList:', yearMonthList);
+  
+  const html = `
     <div class="library-container">
       <div class="library-sidebar">
         <div class="sidebar-header">
@@ -235,6 +237,11 @@ function renderLibraryByMonth() {
       </div>
     </div>
   `;
+  
+  console.log('Generated HTML length:', html.length);
+  console.log('HTML preview:', html.substring(0, 200) + '...');
+  
+  diaryList.innerHTML = html;
 }
 
 // 渲染年月导航
