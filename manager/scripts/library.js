@@ -864,7 +864,11 @@ async function syncCommentsToGitHub(diaryId) {
 
 // 从 GitHub 加载评论（解密读取，复用正文逻辑）
 async function loadCommentsFromGitHub(diaryId) {
+  console.log('loadCommentsFromGitHub 被调用，diaryId:', diaryId);
+  
   const token = getToken();
+  console.log('getToken 返回:', token ? '有 token' : '无 token');
+  
   if (!token) {
     console.warn('加载评论失败：无 token');
     return;
@@ -874,9 +878,11 @@ async function loadCommentsFromGitHub(diaryId) {
   console.log('开始加载评论（解密）:', { diaryId, path });
 
   try {
+    console.log('准备发送 fetch 请求:', path);
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
       headers: { Authorization: `token ${token}` }
     });
+    console.log('fetch 响应状态:', res.status);
 
     if (res.status === 200) {
       const fileData = await res.json();
