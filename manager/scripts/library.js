@@ -452,11 +452,28 @@ function toggleDiaryExportDropdown(index) {
       }
     });
     
-    // 切换当前下拉菜单
-    const currentDisplay = dropdown.style.display;
-    console.log('current display:', currentDisplay);
-    dropdown.style.display = currentDisplay === 'block' ? 'none' : 'block';
+    // 切换当前下拉菜单 - 强制设置所有样式
+    const isVisible = dropdown.style.display === 'block';
+    console.log('isVisible:', isVisible);
+    
+    if (isVisible) {
+      // 隐藏
+      dropdown.style.display = 'none';
+    } else {
+      // 显示 - 强制设置所有可能影响显示的样式
+      dropdown.style.display = 'block';
+      dropdown.style.opacity = '1';
+      dropdown.style.visibility = 'visible';
+      dropdown.style.transform = 'none';
+      dropdown.style.zIndex = '1001';
+    }
+    
     console.log('new display:', dropdown.style.display);
+    console.log('new opacity:', dropdown.style.opacity);
+    console.log('new visibility:', dropdown.style.visibility);
+    
+    // 强制重绘
+    dropdown.offsetHeight;
   } else {
     console.error('dropdown not found for index:', index);
   }
