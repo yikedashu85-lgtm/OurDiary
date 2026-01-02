@@ -102,6 +102,28 @@ function getYearMonthList() {
   return yearMonths;
 }
 
+// 从特定数据获取年月列表
+function getYearMonthListFromData(data) {
+  const yearMonths = [];
+  
+  Object.keys(data)
+    .sort((a, b) => parseInt(b) - parseInt(a))
+    .forEach(year => {
+      Object.keys(data[year])
+        .sort((a, b) => parseInt(b) - parseInt(a))
+        .forEach(month => {
+          yearMonths.push({
+            year: year,
+            month: month,
+            count: data[year][month].length,
+            label: `${year}年${parseInt(month)}月`
+          });
+        });
+    });
+  
+  return yearMonths;
+}
+
 // 渲染按年月组织的日记库
 function renderLibraryByMonth() {
   if (Object.keys(diariesByMonth).length === 0) {
@@ -118,8 +140,44 @@ function renderLibraryByMonth() {
     return;
   }
 
-  const yearMonthList = getYearMonthList();
-  const stats = getMonthStatistics();
+  // 获取搜索关键词
+  const searchInput = document.getElementById('searchInput');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
+  // 过滤日记
+  let filteredDiaries = allDiaries;
+  if (query) {
+    filteredDiaries = allDiaries.filter(diary => {
+      const titleMatch = (diary.title || '').toLowerCase().includes(query);
+      const authorMatch = (diary.author || '').toLowerCase().includes(query);
+      const contentMatch = (diary.content || '').toLowerCase().includes(query);
+      const tagsMatch = (diary.tags || '').toLowerCase().includes(query);
+      return titleMatch || authorMatch || contentMatch || tagsMatch;
+    });
+  }
+
+  if (filteredDiaries.length === 0) {
+    diaryList.innerHTML = query ? `
+      <div class="empty-state">
+        <i class="ri-search-line"></i>
+        <h3>没有找到匹配的日常</h3>
+        <p>试试其他关键词吧</p>
+      </div>` : `
+      <div class="empty-state">
+        <i class="ri-book-line"></i>
+        <h3>还没有日记</h3>
+        <p>开始写第一篇日记吧</p>
+        <button class="btn btn-primary" onclick="window.location.href='index.html'">
+          <i class="ri-edit-line"></i>
+          写日常
+        </button>
+      </div>`;
+    return;
+  }
+
+  // 重新组织过滤后的数据
+  const filteredDiariesByMonth = organizeDiariesByMonth(filteredDiaries);
+  const yearMonthList = getYearMonthListFromData(filteredDiariesByMonth);
   
   diaryList.innerHTML = `
     <div class="library-container">
@@ -132,7 +190,7 @@ function renderLibraryByMonth() {
         </div>
         <div class="library-stats">
           <h4><i class="ri-bar-chart-line"></i> 统计信息</h4>
-          ${renderStatistics()}
+          ${renderStatistics(filteredDiaries)}
         </div>
       </div>
       <div class="library-content">
@@ -167,7 +225,7 @@ function renderLibraryByMonth() {
           </div>
         </div>
         <div class="diary-list">
-          ${renderDiaryListByMonth(yearMonthList)}
+          ${renderDiaryListByMonthFromData(filteredDiariesByMonth, yearMonthList)}
         </div>
       </div>
     </div>
@@ -207,13 +265,13 @@ function renderYearMonthNavigation(yearMonthList) {
 }
 
 // 渲染统计信息
-function renderStatistics() {
-  const totalDiaries = allDiaries.length;
-  const totalWords = allDiaries.reduce((sum, diary) => sum + (diary.content?.length || 0), 0);
+function renderStatistics(diaries = allDiaries) {
+  const totalDiaries = diaries.length;
+  const totalWords = diaries.reduce((sum, diary) => sum + (diary.content?.length || 0), 0);
   const authorCounts = {};
   const tagCounts = {};
   
-  allDiaries.forEach(diary => {
+  diaries.forEach(diary => {
     authorCounts[diary.author] = (authorCounts[diary.author] || 0) + 1;
     if (diary.tags) {
       diary.tags.split(/[,，\s]+/).forEach(tag => {
@@ -226,7 +284,7 @@ function renderStatistics() {
   
   const topAuthor = Object.keys(authorCounts).reduce((a, b) => authorCounts[a] > authorCounts[b] ? a : b, '');
   const topTag = Object.keys(tagCounts).reduce((a, b) => tagCounts[a] > tagCounts[b] ? a : b, '');
-  const latestDate = allDiaries.length > 0 ? new Date(allDiaries[0].date).toLocaleDateString('zh-CN') : '无';
+  const latestDate = diaries.length > 0 ? new Date(diaries[0].date).toLocaleDateString('zh-CN') : '无';
   
   return `
     <div class="stat-item">
@@ -256,6 +314,25 @@ function renderStatistics() {
 function renderDiaryListByMonth(yearMonthList) {
   return yearMonthList.map(item => {
     const diaries = diariesByMonth[item.year][item.month];
+    return `
+      <div class="month-section" id="month-${item.year}-${item.month}">
+        <h3 class="month-title">
+          <i class="ri-calendar-2-line"></i>
+          ${item.label}
+          <span class="month-diary-count">(${diaries.length}篇)</span>
+        </h3>
+        <div class="month-diaries">
+          ${diaries.map(diary => renderDiaryCard(diary)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 从特定数据渲染日记列表（按月分组）
+function renderDiaryListByMonthFromData(data, yearMonthList) {
+  return yearMonthList.map(item => {
+    const diaries = data[item.year][item.month];
     return `
       <div class="month-section" id="month-${item.year}-${item.month}">
         <h3 class="month-title">
@@ -561,141 +638,6 @@ async function loadDiariesFromGitHub() {
   }
 }
 
-// 渲染日记列表
-function renderDiaries() {
-  diaryList.innerHTML = '';
-  
-  // 获取搜索关键词
-  const searchInput = document.getElementById('searchInput');
-  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  
-  // 过滤日记
-  let filteredDiaries = allDiaries;
-  if (query) {
-    filteredDiaries = allDiaries.filter(diary => {
-      const titleMatch = (diary.title || '').toLowerCase().includes(query);
-      const authorMatch = (diary.author || '').toLowerCase().includes(query);
-      const contentMatch = (diary.content || '').toLowerCase().includes(query);
-      const tagsMatch = (diary.tags || '').toLowerCase().includes(query);
-      return titleMatch || authorMatch || contentMatch || tagsMatch;
-    });
-  }
-  
-  if (filteredDiaries.length === 0) {
-    diaryList.innerHTML = query ? `
-      <div class="empty-state">
-        <i class="ri-search-line"></i>
-        <h3>没有找到匹配的日常</h3>
-        <p>试试其他关键词吧</p>
-      </div>` : `
-      <div class="empty-state">
-        <i class="ri-book-line"></i>
-        <h3>还没有日常</h3>
-        <p>快去写下第一篇日常吧！</p>
-        <button class="btn btn-primary" onclick="window.location.href='index.html'">
-          <i class="ri-edit-line"></i>
-          写日常
-        </button>
-      </div>`;
-    return;
-  }
-
-  filteredDiaries.forEach((diary, index) => {
-    const card = document.createElement('div');
-    card.className = 'diary-card';
-    
-    // 获取作者姓名首字母
-    const authorInitial = diary.author.charAt(0);
-    
-    // 格式化日期
-    const dateStr = String(diary.date || '').split('T')[0];
-
-    const diaryId = getDiaryCommentId(diary);
-    const commentCount = (commentsData[diaryId] || []).length;
-    
-    card.innerHTML = `
-      <div class="diary-header">
-        <div class="diary-author">
-          <div class="author-avatar">${authorInitial}</div>
-          <div class="author-info">
-            <div class="author-name">${diary.author}</div>
-            <div class="diary-time">${dateStr}</div>
-          </div>
-        </div>
-        <div class="diary-actions">
-          <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiary(${index})" title="展开/收起">
-            <i class="ri-arrow-down-s-line"></i>
-          </button>
-          <div class="export-dropdown">
-            <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiaryExportDropdown(${index})" title="导出">
-              <i class="ri-download-2-line"></i>
-            </button>
-            <div id="exportDropdown-${index}" class="diary-export-menu">
-              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'md'); return false;">
-                <i class="ri-markdown-line"></i>
-                Markdown (.md)
-              </a>
-              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'txt'); return false;">
-                <i class="ri-file-text-line"></i>
-                纯文本 (.txt)
-              </a>
-              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'pdf'); return false;">
-                <i class="ri-file-pdf-line"></i>
-                PDF (.pdf)
-              </a>
-            </div>
-          </div>
-          <button class="diary-action-btn" onclick="event.stopPropagation(); showLibraryDeleteConfirm(${index})" title="删除">
-            <i class="ri-delete-bin-6-line"></i>
-          </button>
-        </div>
-      </div>
-      <h2 class="diary-title">${diary.title}</h2>
-      ${diary.tags ? `<div class="diary-tags">${diary.tags.split(/[,，\s]+/).filter(Boolean).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
-      <div class="diary-content" id="content-${index}" style="display: none;" onclick="event.stopPropagation()">
-        ${marked.parse(diary.content)}
-      </div>
-      <div class="diary-comments" id="comments-${diaryId}" onclick="event.stopPropagation()">
-        <div class="comments-header">
-          <div class="comments-title">
-            <i class="ri-chat-3-line"></i>
-            评论
-            <span class="comment-count">${commentCount}</span>
-          </div>
-          <button class="add-comment-btn" onclick="event.stopPropagation(); showCommentModal('${diaryId}')">
-            <i class="ri-add-line"></i>
-            添加评论
-          </button>
-        </div>
-        <div class="comment-list"></div>
-      </div>
-    `;
-    
-    diaryList.appendChild(card);
-
-    const headerEl = card.querySelector('.diary-header');
-    const titleEl = card.querySelector('.diary-title');
-    const actionsEl = card.querySelector('.diary-actions');
-    if (headerEl) {
-      headerEl.style.cursor = 'pointer';
-      headerEl.addEventListener('click', (e) => {
-        if (actionsEl && actionsEl.contains(e.target)) return;
-        openDiaryPreview(index);
-      });
-    }
-    if (titleEl) {
-      titleEl.style.cursor = 'pointer';
-      titleEl.addEventListener('click', () => {
-        openDiaryPreview(index);
-      });
-    }
-
-    // 批量并行加载所有评论
-    const diaryIds = filteredDiaries.map(diary => getDiaryCommentId(diary));
-    Promise.all(diaryIds.map(id => loadCommentsFromGitHub(id))).catch(console.error);
-  });
-}
-
 function openDiaryPreview(index) {
   const diary = allDiaries[index];
   if (!diary || !diary.filename) return;
@@ -757,7 +699,8 @@ async function confirmLibraryDelete() {
     showNotification('删除成功');
 
     allDiaries.splice(index, 1);
-    renderDiaries();
+    diariesByMonth = organizeDiariesByMonth(allDiaries);
+    renderLibraryByMonth();
   } catch (e) {
     showNotification(e.message || '删除失败');
   }
@@ -1186,7 +1129,7 @@ window.addEventListener('load', function() {
   // 搜索框实时监听
   const searchInput = document.getElementById('searchInput');
   if (searchInput) {
-    searchInput.addEventListener('input', renderDiaries);
+    searchInput.addEventListener('input', renderLibraryByMonth);
   }
 });
 
