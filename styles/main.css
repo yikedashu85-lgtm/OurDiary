@@ -713,16 +713,17 @@ body {
     opacity: 1;
   }
 
-  /* 移动端选中标记 - 改为底部 */
+  /* 移动端选中标记 - 改为底部横线 */
   .menu-item.active::before {
     content: '';
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 50%;
     bottom: 0;
-    height: 3px;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
     background: var(--primary-light);
-    border-radius: 3px 3px 0 0;
+    border-radius: 1px;
   }
 
   /* 移动端隐藏token按钮 */
@@ -764,20 +765,24 @@ body {
   /* 移动端日期时间布局优化 */
   .date-input-group {
     display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    flex-direction: row;
+    gap: 0.5rem;
+    align-items: stretch;
   }
 
   .date-input-group .form-input {
     flex: 1;
+    min-height: 44px;
   }
 
   .date-input-group .btn-sm {
-    width: 100%;
+    width: auto;
+    min-width: 60px;
     min-height: 44px;
-    padding: 0.875rem 1rem;
-    font-size: 16px;
+    padding: 0.75rem;
+    font-size: 14px;
     border-radius: 12px;
+    white-space: nowrap;
   }
 
   .form-input,
@@ -837,11 +842,9 @@ body {
     gap: 0.75rem;
     padding: 1rem;
     background: var(--bg-card);
-    border-top: 1px solid var(--border-color);
-    margin: 1rem -1rem -1rem;
-    position: sticky;
-    bottom: 0;
-    backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin: 1rem 0;
   }
 
   .mobile-actions .btn {
