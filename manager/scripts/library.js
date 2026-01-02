@@ -172,8 +172,8 @@ async function loadDiariesFromGitHub() {
     allDiaries = [];
     const keyHash = deriveKeyFromToken(token);
 
-    // 获取所有文件内容
-    for (const file of mdFiles) {
+    // 并行获取所有文件内容
+    const filePromises = mdFiles.map(async (file) => {
       try {
         const fileResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/posts/${file.name}`, {
           headers: { Authorization: `token ${token}` }
@@ -186,7 +186,7 @@ async function loadDiariesFromGitHub() {
         
         // 尝试解密
         const decryptedContent = decryptContent(decodedContent, keyHash);
-        if (!decryptedContent) continue; // 跳过无法解密的文件
+        if (!decryptedContent) return null; // 跳过无法解密的文件
         
         // 解析 front matter
         const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
@@ -199,19 +199,25 @@ async function loadDiariesFromGitHub() {
             }
           });
           
-          allDiaries.push({
+          return {
             title: metadata.title || '无标题',
             author: metadata.author || '未知',
             date: metadata.date || file.name,
             tags: metadata.tags || '',
             content: frontMatterMatch[2],
             filename: file.name
-          });
+          };
         }
+        return null;
       } catch(e) {
         console.error(`无法解密文件 ${file.name}:`, e);
+        return null;
       }
-    }
+    });
+
+    // 等待所有文件加载完成
+    const results = await Promise.all(filePromises);
+    allDiaries = results.filter(diary => diary !== null);
 
     // 按日期排序
     allDiaries.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -344,8 +350,9 @@ function renderDiaries() {
       });
     }
 
-    loadCommentsFromGitHub(diaryId);
-    updateCommentsDisplay(diaryId);
+    // 批量并行加载所有评论
+    const diaryIds = filteredDiaries.map(diary => getDiaryCommentId(diary));
+    Promise.all(diaryIds.map(id => loadCommentsFromGitHub(id))).catch(console.error);
   });
 }
 
@@ -896,6 +903,7 @@ async function loadCommentsFromGitHub(diaryId) {
       updateCommentsDisplay(diaryId);
     } else if (res.status === 404) {
       // 静默，无评论文件
+      updateCommentsDisplay(diaryId);
     } else {
       console.error('加载评论失败:', res.status, await res.text());
     }

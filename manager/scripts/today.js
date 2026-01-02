@@ -319,12 +319,12 @@ function displayDiaries(diaries) {
     `;
   }).join('');
 
-  diaries.forEach((diary) => {
+  // 批量并行加载所有评论
+  const diaryIds = diaries.map(diary => {
     const diaryKey = diary.id || `${diary.date}-${diary.author}`;
-    const safeId = toSafeId(diaryKey);
-    loadCommentsFromGitHub(safeId);
-    updateCommentsDisplay(safeId);
+    return toSafeId(diaryKey);
   });
+  Promise.all(diaryIds.map(id => loadCommentsFromGitHub(id))).catch(console.error);
 }
 
 // 评论相关变量
@@ -591,6 +591,7 @@ async function loadCommentsFromGitHub(diaryId) {
       updateCommentsDisplay(diaryId);
     } else if (res.status === 404) {
       // 静默，无评论文件
+      updateCommentsDisplay(diaryId);
     } else {
       console.error('加载评论失败:', res.status, await res.text());
     }
