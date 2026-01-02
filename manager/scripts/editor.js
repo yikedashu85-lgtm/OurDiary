@@ -249,7 +249,10 @@ async function uploadToGitHub() {
   const date = document.getElementById('date').value;
   const tags = document.getElementById('tags').value;
   const dateStr = date ? date.split('T')[0] : new Date().toISOString().split('T')[0];
-  const path = editingFilename ? `posts/${editingFilename}` : `posts/${dateStr}-${author}.md`;
+  
+  // 生成唯一文件名：日期-作者-时间戳
+  const timestamp = editingFilename ? '' : `-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5)}`;
+  const path = editingFilename ? `posts/${editingFilename}` : `posts/${dateStr}-${author}${timestamp}.md`;
   const content = editor.value;
   const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\ntags: ${tags}\n---\n\n${content}`;
 
