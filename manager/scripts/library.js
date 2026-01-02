@@ -302,9 +302,25 @@ function renderDiaries() {
           <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiary(${index})" title="展开/收起">
             <i class="ri-arrow-down-s-line"></i>
           </button>
-          <button class="diary-action-btn" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'md')" title="导出">
-            <i class="ri-download-2-line"></i>
-          </button>
+          <div class="export-dropdown">
+            <button class="diary-action-btn" onclick="event.stopPropagation(); toggleExportDropdown(${index})" title="导出">
+              <i class="ri-download-2-line"></i>
+            </button>
+            <div id="exportDropdown-${index}" class="dropdown-menu">
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'md'); return false;">
+                <i class="ri-markdown-line"></i>
+                Markdown (.md)
+              </a>
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'txt'); return false;">
+                <i class="ri-file-text-line"></i>
+                纯文本 (.txt)
+              </a>
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'pdf'); return false;">
+                <i class="ri-file-pdf-line"></i>
+                PDF (.pdf)
+              </a>
+            </div>
+          </div>
           <button class="diary-action-btn" onclick="event.stopPropagation(); showLibraryDeleteConfirm(${index})" title="删除">
             <i class="ri-delete-bin-6-line"></i>
           </button>
@@ -423,7 +439,32 @@ async function confirmLibraryDelete() {
   }
 }
 
-// 切换日记展开/收起
+// 切换导出下拉菜单
+function toggleExportDropdown(index) {
+  const dropdown = document.getElementById(`exportDropdown-${index}`);
+  if (dropdown) {
+    // 关闭其他所有下拉菜单
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      if (menu.id !== `exportDropdown-${index}`) {
+        menu.style.display = 'none';
+      }
+    });
+    
+    // 切换当前下拉菜单
+    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+  }
+}
+
+// 点击其他地方关闭下拉菜单
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.export-dropdown')) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      menu.style.display = 'none';
+    });
+  }
+});
+
+// 切换展开/收起
 function toggleDiary(index) {
   const content = document.getElementById(`content-${index}`);
   const isShowing = content.style.display !== 'none';

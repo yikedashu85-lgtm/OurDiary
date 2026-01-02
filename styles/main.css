@@ -974,6 +974,44 @@ body {
     margin-left: 0;
     order: -1;
   }
+
+  /* 日常库导出下拉菜单样式 */
+  .diary-actions .export-dropdown {
+    position: relative;
+  }
+
+  .diary-actions .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    min-width: 150px;
+    z-index: 1000;
+    display: none;
+  }
+
+  .diary-actions .dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    font-size: 0.875rem;
+  }
+
+  .diary-actions .dropdown-menu a:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .diary-actions .dropdown-menu a i {
+    font-size: 0.875rem;
+  }
 }
 
 /* 平板优化 */
