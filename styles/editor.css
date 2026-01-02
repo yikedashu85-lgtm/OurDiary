@@ -89,6 +89,7 @@
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   line-height: 1.6;
   padding: 1rem;
+  border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
 }
 
 .editor-toolbar {
@@ -97,8 +98,8 @@
   padding: 0.5rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-top: none;
-  border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+  border-bottom: none;
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
   flex-wrap: wrap;
 }
 
