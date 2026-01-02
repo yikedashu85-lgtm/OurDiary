@@ -26,16 +26,16 @@
   
   /* 边框和阴影 */
   --border-color: rgba(31, 51, 49, 0.12);
-  --shadow-light: 0 10px 26px rgba(31, 51, 49, 0.10);
-  --shadow-medium: 0 18px 40px rgba(31, 51, 49, 0.14);
-  --shadow-heavy: 0 30px 70px rgba(31, 51, 49, 0.20);
+  --shadow-light: 0 4px 14px rgba(31, 51, 49, 0.08);
+  --shadow-medium: 0 8px 24px rgba(31, 51, 49, 0.12);
+  --shadow-heavy: 0 16px 40px rgba(31, 51, 49, 0.16);
 
   --focus-ring: 0 0 0 3px rgba(134, 158, 92, 0.35);
   
   /* 圆角 */
-  --border-radius: 12px;
-  --border-radius-sm: 8px;
-  --border-radius-lg: 16px;
+  --border-radius: 14px;
+  --border-radius-sm: 10px;
+  --border-radius-lg: 20px;
 }
 
 * {
@@ -322,7 +322,7 @@ body {
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -330,22 +330,23 @@ body {
   text-decoration: none;
   background: var(--bg-card);
   color: var(--text-primary);
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 2px 8px rgba(31, 51, 49, 0.06);
   will-change: transform;
 }
 
 .btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-medium);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(31, 51, 49, 0.10);
 }
 
 .btn:active {
   transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(31, 51, 49, 0.06);
 }
 
 .btn:focus-visible {
   outline: none;
-  box-shadow: var(--focus-ring), var(--shadow-medium);
+  box-shadow: var(--focus-ring), 0 6px 20px rgba(31, 51, 49, 0.10);
 }
 
 .btn:disabled,
@@ -360,12 +361,12 @@ body {
   background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
   color: white;
   border-color: rgba(237, 237, 237, 0.22);
-  box-shadow: 0 18px 44px rgba(134, 158, 92, 0.22);
+  box-shadow: 0 4px 16px rgba(134, 158, 92, 0.18);
 }
 
 .btn-primary:hover {
   background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-  box-shadow: 0 22px 54px rgba(134, 158, 92, 0.26);
+  box-shadow: 0 8px 28px rgba(134, 158, 92, 0.24);
 }
 
 .btn-secondary {
