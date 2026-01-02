@@ -153,6 +153,7 @@ async function loadTodayDiaries() {
             title: metadata.title || '无标题',
             author: metadata.author || '未知',
             date: metadata.date || file.name,
+            tags: metadata.tags || '',
             content: frontMatterMatch[2]
           });
         }
