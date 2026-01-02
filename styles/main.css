@@ -753,12 +753,12 @@ body {
 
   /* 移动端隐藏顶部操作按钮 */
   .header-actions {
-    display: none;
+    display: none !important;
   }
 
   /* 移动端显示内容附近操作按钮 */
   .mobile-actions {
-    display: flex;
+    display: flex !important;
     gap: 0.75rem;
     padding: 1rem;
     background: var(--bg-card);
@@ -785,25 +785,6 @@ body {
     right: 0;
     margin-top: 0.5rem;
     z-index: 1000;
-  }
-
-  /* PC端显示顶部按钮，隐藏移动端按钮 */
-  @media (min-width: 769px) {
-    .header-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    .header-actions .btn {
-      flex: none;
-      min-width: auto;
-    }
-
-    .mobile-actions {
-      display: none;
-    }
   }
 
   /* 移动端表单 */
@@ -944,6 +925,25 @@ body {
   .hero-actions .btn {
     width: 100%;
     min-height: 48px;
+  }
+}
+
+/* PC端显示顶部按钮，隐藏移动端按钮 */
+@media (min-width: 769px) {
+  .header-actions {
+    display: flex !important;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .header-actions .btn {
+    flex: none;
+    min-width: auto;
+  }
+
+  .mobile-actions {
+    display: none !important;
   }
 }
 
