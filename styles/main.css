@@ -756,26 +756,14 @@ body {
     display: none !important;
   }
 
-  /* 移动端显示内容附近操作按钮 */
+  /* 移动端操作按钮样式 - 只在移动端显示 */
   .mobile-actions {
-    display: flex !important;
+    display: flex;
     gap: 0.75rem;
     padding: 1rem;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    margin: 1rem 0;
-    order: 3;
-  }
-
-  .mobile-actions .btn {
-    flex: 1;
-    min-height: 48px;
-    font-size: 16px;
-  }
-
-  .mobile-actions .export-dropdown {
-    position: relative;
   }
 
   .mobile-actions .dropdown-menu {
@@ -784,7 +772,88 @@ body {
     left: 0;
     right: 0;
     margin-top: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 12px var(--shadow-medium);
     z-index: 1000;
+    display: none;
+  }
+
+  .mobile-actions .dropdown-menu a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+    font-size: 16px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .mobile-actions .dropdown-menu a:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-actions .dropdown-menu a:hover {
+    background: var(--bg-tertiary);
+  }
+
+  .mobile-actions .dropdown-menu a i {
+    font-size: 1rem;
+  }
+
+  /* 移动端日常库导出下拉菜单样式 */
+  .diary-actions .diary-export-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 0.5rem !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 4px 12px var(--shadow-medium) !important;
+    min-width: 150px !important;
+    z-index: 1001 !important;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .diary-actions .diary-export-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+  }
+
+  .diary-actions .diary-export-menu a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s ease !important;
+    font-size: 16px !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    border-radius: 0 !important;
+  }
+
+  .diary-actions .diary-export-menu a:last-child {
+    border-bottom: none !important;
+  }
+
+  .diary-actions .diary-export-menu a:hover {
+    background: var(--bg-tertiary) !important;
+  }
+
+  .diary-actions .diary-export-menu a i {
+    font-size: 1rem !important;
   }
 
   /* 移动端表单 */
