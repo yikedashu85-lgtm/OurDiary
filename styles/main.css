@@ -1449,85 +1449,48 @@ body {
     display: none !important;
   }
 
-  /* PC端今天的事页面优化 - 只影响today页面 */
-  body:has(#currentDate) .page-header {
-    padding: 2rem 0;
-    margin-bottom: 2rem;
+  /* 强制PC端双栏布局 - 最高优先级 */
+  .library-container {
+    display: grid !important;
+    grid-template-columns: 280px 1fr !important;
+    gap: 2rem !important;
+    min-height: calc(100vh - 200px) !important;
   }
 
-  body:has(#currentDate) .page-title {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  body:has(#currentDate) .page-subtitle {
-    font-size: 1rem;
-    color: var(--text-secondary);
-    margin-bottom: 1rem;
-  }
-
-  body:has(#currentDate) .header-left {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  body:has(#currentDate) .header-actions {
-    margin-left: 0;
-    order: -1;
-  }
-
-  /* 日常库导出下拉菜单样式 - 强制覆盖所有其他样式 */
-  .diary-actions .export-dropdown {
-    position: relative;
-  }
-
-  .diary-actions .diary-export-menu {
-    position: absolute !important;
-    top: 100% !important;
-    right: 0 !important;
-    left: auto !important;
-    margin-top: 0.5rem !important;
+  .library-sidebar {
+    display: block !important;
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
     border-radius: var(--border-radius) !important;
-    box-shadow: 0 4px 12px var(--shadow-medium) !important;
-    min-width: 150px !important;
-    z-index: 1001 !important;
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    transform: translateY(-10px) !important;
+    padding: 1.5rem !important;
+    height: fit-content !important;
+    position: sticky !important;
+    top: 2rem !important;
+    box-shadow: 0 4px 12px var(--shadow-light) !important;
     transition: all 0.3s ease !important;
+    width: 280px !important;
   }
 
-  .diary-actions .diary-export-menu.show {
+  .library-content {
     display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    transform: translateY(0) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    padding: 1.5rem !important;
   }
 
-  .diary-actions .diary-export-menu a {
-    display: flex !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-    padding: 0.5rem 0.75rem !important;
-    color: var(--text-primary) !important;
-    text-decoration: none !important;
-    transition: background-color 0.2s ease !important;
-    font-size: 0.875rem !important;
-    border-bottom: none !important;
-    border-radius: 0 !important;
+  .year-month-nav {
+    display: block !important;
   }
 
-  .diary-actions .diary-export-menu a:hover {
-    background: var(--bg-tertiary) !important;
+  .month-list {
+    display: block !important;
   }
 
-  .diary-actions .diary-export-menu a i {
-    font-size: 0.875rem !important;
+  /* 强制覆盖任何可能的冲突样式 */
+  .diary-feed {
+    display: block !important;
+    grid-template-columns: none !important;
   }
 }
 

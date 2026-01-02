@@ -242,6 +242,10 @@ function renderLibraryByMonth() {
   console.log('HTML preview:', html.substring(0, 200) + '...');
   
   diaryList.innerHTML = html;
+  
+  // 加载所有评论
+  const diaryIds = filteredDiaries.map(diary => getDiaryCommentId(diary));
+  Promise.all(diaryIds.map(id => loadCommentsFromGitHub(id))).catch(console.error);
 }
 
 // 渲染年月导航
