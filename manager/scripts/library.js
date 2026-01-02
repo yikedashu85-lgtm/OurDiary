@@ -442,12 +442,23 @@ async function confirmLibraryDelete() {
 // 切换日常库导出下拉菜单
 function toggleDiaryExportDropdown(index) {
   console.log('toggleDiaryExportDropdown called with index:', index);
-  const dropdown = document.getElementById(`exportDropdown-${index}`);
+  const dropdownId = `exportDropdown-${index}`;
+  console.log('looking for element with id:', dropdownId);
+  
+  // 检查所有相关的元素
+  const allDropdowns = document.querySelectorAll('.diary-export-menu');
+  console.log('all diary-export-menu elements:', allDropdowns.length);
+  allDropdowns.forEach((el, i) => {
+    console.log(`element ${i}:`, el.id, el);
+  });
+  
+  const dropdown = document.getElementById(dropdownId);
   console.log('dropdown element:', dropdown);
+  
   if (dropdown) {
     // 关闭其他所有日常库导出下拉菜单
     document.querySelectorAll('.diary-export-menu').forEach(menu => {
-      if (menu.id !== `exportDropdown-${index}`) {
+      if (menu.id !== dropdownId) {
         menu.style.display = 'none';
       }
     });
@@ -476,6 +487,7 @@ function toggleDiaryExportDropdown(index) {
     dropdown.offsetHeight;
   } else {
     console.error('dropdown not found for index:', index);
+    console.error('available elements in DOM:', document.querySelectorAll('[id^="exportDropdown"]'));
   }
 }
 
