@@ -704,10 +704,10 @@ function hideCommentModal() {
 }
 
 function submitComment() {
+  alert('submitComment 被调用了！');
+  console.log('准备发表评论:', { currentDiaryId, author, content });
   const author = document.getElementById('commentAuthor')?.value;
   const content = document.getElementById('commentContent')?.value?.trim();
-
-  console.log('准备发表评论:', { currentDiaryId, author, content });
 
   if (!content) {
     showNotification('请输入评论内容');
