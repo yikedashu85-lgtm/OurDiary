@@ -91,6 +91,16 @@ function deriveKeyFromToken(token) {
   return hash;
 }
 
+function encryptContent(content, keyHash) {
+  const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
+  const encrypted = CryptoJS.AES.encrypt(content, keyHash, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7
+  });
+  return encrypted.toString();
+}
+
 function decryptContent(encryptedContent, keyHash) {
   try {
     const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
