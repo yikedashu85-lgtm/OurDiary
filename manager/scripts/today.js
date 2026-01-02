@@ -501,7 +501,7 @@ function checkDateChange() {
 // 每30秒检查一次日期变化
 setInterval(checkDateChange, 30000);
 
-// 评论同步到 GitHub
+// 评论同步到 GitHub（加密存储，复用正文逻辑）
 async function syncCommentsToGitHub(diaryId) {
   const token = getToken();
   if (!token) {
@@ -513,9 +513,14 @@ async function syncCommentsToGitHub(diaryId) {
   const content = JSON.stringify(comments, null, 2);
   const path = `posts/comments/${diaryId}.json`;
 
-  console.log('开始同步评论:', { diaryId, path, commentCount: comments.length });
+  console.log('开始同步评论（加密）:', { diaryId, path, commentCount: comments.length });
 
   try {
+    // 加密内容（复用正文的加密方式）
+    const keyHash = deriveKeyFromToken(token);
+    const encryptedContent = encryptContent(content, keyHash);
+    
+    // 检查文件是否存在
     let sha = null;
     const getRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
       headers: { Authorization: `token ${token}` }
@@ -531,18 +536,19 @@ async function syncCommentsToGitHub(diaryId) {
       return;
     }
 
+    // 上传加密内容（复用正文的上传方式）
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
       method: 'PUT',
       headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: `Update comments for ${diaryId}`,
-        content: btoa(unescape(encodeURIComponent(content))),
+        content: btoa(unescape(encodeURIComponent(encryptedContent))),
         sha: sha
       })
     });
 
     if (res.ok) {
-      console.log('评论同步成功:', path);
+      console.log('评论同步成功（加密）:', path);
     } else {
       console.error('评论同步失败:', res.status, await res.text());
     }
@@ -551,7 +557,7 @@ async function syncCommentsToGitHub(diaryId) {
   }
 }
 
-// 从 GitHub 加载评论
+// 从 GitHub 加载评论（解密读取，复用正文逻辑）
 async function loadCommentsFromGitHub(diaryId) {
   const token = getToken();
   if (!token) {
@@ -560,7 +566,7 @@ async function loadCommentsFromGitHub(diaryId) {
   }
 
   const path = `posts/comments/${diaryId}.json`;
-  console.log('开始加载评论:', { diaryId, path });
+  console.log('开始加载评论（解密）:', { diaryId, path });
 
   try {
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
@@ -568,13 +574,24 @@ async function loadCommentsFromGitHub(diaryId) {
     });
 
     if (res.status === 200) {
-      const data = await res.json();
-      const content = atob(data.content);
-      const comments = JSON.parse(content);
+      const fileData = await res.json();
+      const encryptedContent = atob(fileData.content);
+      
+      // 解码并解密（复用正文的解密方式）
+      const decodedContent = decodeURIComponent(escape(encryptedContent));
+      const keyHash = deriveKeyFromToken(token);
+      const decryptedContent = decryptContent(decodedContent, keyHash);
+      
+      if (!decryptedContent) {
+        console.warn('评论解密失败，可能文件不是用当前 token 加密的');
+        return;
+      }
+
+      const comments = JSON.parse(decryptedContent);
       commentsData[diaryId] = comments;
       localStorage.setItem('diary_comments', JSON.stringify(commentsData));
       updateCommentsDisplay(diaryId);
-      console.log('评论加载成功:', path, `共${comments.length}条`);
+      console.log('评论加载成功（解密）:', path, `共${comments.length}条`);
     } else if (res.status === 404) {
       // 静默，无评论文件
     } else {
