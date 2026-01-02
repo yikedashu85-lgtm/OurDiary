@@ -980,7 +980,7 @@ body {
     position: relative;
   }
 
-  .diary-actions .dropdown-menu {
+  .diary-actions .diary-export-menu {
     position: absolute;
     top: 100%;
     right: 0;
@@ -994,7 +994,7 @@ body {
     display: none;
   }
 
-  .diary-actions .dropdown-menu a {
+  .diary-actions .diary-export-menu a {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -1005,11 +1005,11 @@ body {
     font-size: 0.875rem;
   }
 
-  .diary-actions .dropdown-menu a:hover {
+  .diary-actions .diary-export-menu a:hover {
     background: var(--bg-tertiary);
   }
 
-  .diary-actions .dropdown-menu a i {
+  .diary-actions .diary-export-menu a i {
     font-size: 0.875rem;
   }
 }

@@ -306,7 +306,7 @@ function renderDiaries() {
             <button class="diary-action-btn" onclick="event.stopPropagation(); toggleExportDropdown(${index})" title="导出">
               <i class="ri-download-2-line"></i>
             </button>
-            <div id="exportDropdown-${index}" class="dropdown-menu">
+            <div id="exportDropdown-${index}" class="diary-export-menu">
               <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${index}, 'md'); return false;">
                 <i class="ri-markdown-line"></i>
                 Markdown (.md)
@@ -457,8 +457,8 @@ function toggleExportDropdown(index) {
 
 // 点击其他地方关闭下拉菜单
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.export-dropdown')) {
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+  if (!e.target.closest('.diary-actions .export-dropdown')) {
+    document.querySelectorAll('.diary-export-menu').forEach(menu => {
       menu.style.display = 'none';
     });
   }
