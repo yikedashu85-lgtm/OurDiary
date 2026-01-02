@@ -509,12 +509,16 @@ async function loadDiariesFromGitHub() {
         <div class="error-state">
           <i class="ri-lock-line"></i>
           <h3>解密失败</h3>
-          <p>无法解密日记文件，可能的原因：</p>
+          <p>无法解密任何日记文件，可能的原因：</p>
           <ul style="text-align: left; max-width: 400px; margin: 1rem auto;">
             <li>GitHub Token 不匹配</li>
             <li>文件使用了不同的加密方式</li>
             <li>Token 权限不足</li>
+            <li>部分文件可能损坏</li>
           </ul>
+          <p style="color: var(--text-secondary); font-size: 0.875rem;">
+            检测到 ${mdFiles.length} 个文件，但都无法解密
+          </p>
           <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
             <button class="btn btn-primary" onclick="showTokenModal()">
               <i class="ri-key-2-line"></i>
@@ -527,6 +531,12 @@ async function loadDiariesFromGitHub() {
           </div>
         </div>`;
       return;
+    }
+
+    // 如果部分文件解密失败，显示警告但继续
+    const failedCount = mdFiles.length - allDiaries.length;
+    if (failedCount > 0) {
+      console.warn(`有 ${failedCount} 个文件解密失败，但 ${allDiaries.length} 个文件成功`);
     }
 
     // 按日期排序
