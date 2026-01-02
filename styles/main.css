@@ -993,9 +993,17 @@ body {
     min-width: 150px !important;
     z-index: 1001 !important;
     display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .diary-actions .diary-export-menu.show {
+    display: block !important;
     opacity: 1 !important;
     visibility: visible !important;
-    transform: none !important;
+    transform: translateY(0) !important;
   }
 
   .diary-actions .diary-export-menu a {

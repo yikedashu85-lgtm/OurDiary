@@ -441,53 +441,17 @@ async function confirmLibraryDelete() {
 
 // 切换日常库导出下拉菜单
 function toggleDiaryExportDropdown(index) {
-  console.log('toggleDiaryExportDropdown called with index:', index);
-  const dropdownId = `exportDropdown-${index}`;
-  console.log('looking for element with id:', dropdownId);
-  
-  // 检查所有相关的元素
-  const allDropdowns = document.querySelectorAll('.diary-export-menu');
-  console.log('all diary-export-menu elements:', allDropdowns.length);
-  allDropdowns.forEach((el, i) => {
-    console.log(`element ${i}:`, el.id, el);
-  });
-  
-  const dropdown = document.getElementById(dropdownId);
-  console.log('dropdown element:', dropdown);
-  
+  const dropdown = document.getElementById(`exportDropdown-${index}`);
   if (dropdown) {
     // 关闭其他所有日常库导出下拉菜单
     document.querySelectorAll('.diary-export-menu').forEach(menu => {
-      if (menu.id !== dropdownId) {
-        menu.style.display = 'none';
+      if (menu.id !== `exportDropdown-${index}`) {
+        menu.classList.remove('show');
       }
     });
     
-    // 切换当前下拉菜单 - 强制设置所有样式
-    const isVisible = dropdown.style.display === 'block';
-    console.log('isVisible:', isVisible);
-    
-    if (isVisible) {
-      // 隐藏
-      dropdown.style.display = 'none';
-    } else {
-      // 显示 - 强制设置所有可能影响显示的样式
-      dropdown.style.display = 'block';
-      dropdown.style.opacity = '1';
-      dropdown.style.visibility = 'visible';
-      dropdown.style.transform = 'none';
-      dropdown.style.zIndex = '1001';
-    }
-    
-    console.log('new display:', dropdown.style.display);
-    console.log('new opacity:', dropdown.style.opacity);
-    console.log('new visibility:', dropdown.style.visibility);
-    
-    // 强制重绘
-    dropdown.offsetHeight;
-  } else {
-    console.error('dropdown not found for index:', index);
-    console.error('available elements in DOM:', document.querySelectorAll('[id^="exportDropdown"]'));
+    // 切换当前下拉菜单
+    dropdown.classList.toggle('show');
   }
 }
 
@@ -495,7 +459,7 @@ function toggleDiaryExportDropdown(index) {
 document.addEventListener('click', function(e) {
   if (!e.target.closest('.diary-actions .export-dropdown')) {
     document.querySelectorAll('.diary-export-menu').forEach(menu => {
-      menu.style.display = 'none';
+      menu.classList.remove('show');
     });
   }
 });
