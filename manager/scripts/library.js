@@ -284,7 +284,11 @@ function renderStatistics(diaries = allDiaries) {
   
   const topAuthor = Object.keys(authorCounts).reduce((a, b) => authorCounts[a] > authorCounts[b] ? a : b, '');
   const topTag = Object.keys(tagCounts).reduce((a, b) => tagCounts[a] > tagCounts[b] ? a : b, '');
-  const latestDate = diaries.length > 0 ? new Date(diaries[0].date).toLocaleDateString('zh-CN') : '无';
+  const latestDate = diaries.length > 0 ? new Date(diaries[0].date).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }) : '无';
   
   return `
     <div class="stat-item">
