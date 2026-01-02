@@ -349,6 +349,14 @@ function renderDiaryListByMonth(yearMonthList) {
   }).join('');
 }
 
+// 切换评论展开/收起
+function toggleComments(diaryId) {
+  const commentsElement = document.getElementById(`comments-${diaryId}`);
+  if (commentsElement) {
+    commentsElement.classList.toggle('collapsed');
+  }
+}
+
 // 渲染单个日记卡片
 function renderDiaryCard(diary) {
   const dateStr = String(diary.date || '').split('T')[0];
@@ -398,8 +406,8 @@ function renderDiaryCard(diary) {
       <div class="diary-content" id="content-${allDiaries.indexOf(diary)}" style="display: none;" onclick="event.stopPropagation()">
         ${marked.parse(diary.content)}
       </div>
-      <div class="diary-comments" id="comments-${diaryId}" onclick="event.stopPropagation()">
-        <div class="comments-header">
+      <div class="diary-comments collapsed" id="comments-${diaryId}" onclick="event.stopPropagation()">
+        <div class="comments-header" onclick="toggleComments('${diaryId}')">
           <div class="comments-title">
             <i class="ri-chat-3-line"></i>
             评论
@@ -410,7 +418,7 @@ function renderDiaryCard(diary) {
             添加评论
           </button>
         </div>
-        <div class="comment-list"></div>
+        <div class="comment-list" style="display: none;"></div>
       </div>
     </div>
   `;

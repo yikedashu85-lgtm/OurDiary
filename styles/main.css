@@ -1469,28 +1469,313 @@ body {
     box-shadow: 0 4px 12px var(--shadow-light) !important;
     transition: all 0.3s ease !important;
     width: 280px !important;
+    backdrop-filter: blur(10px) !important;
+    background: rgba(245, 248, 246, 0.95) !important;
   }
 
-  .library-content {
-    display: block !important;
-    background: var(--bg-card) !important;
-    border: 1px solid var(--border-color) !important;
-    border-radius: var(--border-radius) !important;
-    padding: 1.5rem !important;
+  .library-sidebar:hover {
+    box-shadow: 0 8px 24px var(--shadow-medium) !important;
+    transform: translateY(-2px) !important;
   }
 
-  .year-month-nav {
-    display: block !important;
+  .sidebar-header h3 {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light)) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    animation: shimmer 3s ease-in-out infinite !important;
   }
 
-  .month-list {
-    display: block !important;
+  .year-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 1rem !important;
+    background: linear-gradient(135deg, rgba(134, 158, 92, 0.1), rgba(134, 158, 92, 0.15)) !important;
+    border-radius: var(--border-radius-sm) !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .year-header::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: -100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(134, 158, 92, 0.2), transparent) !important;
+    transition: left 0.3s ease !important;
+  }
+
+  .year-header:hover::before {
+    left: 0 !important;
+  }
+
+  .year-header:hover {
+    background: linear-gradient(135deg, rgba(134, 158, 92, 0.15), rgba(134, 158, 92, 0.25)) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(134, 158, 92, 0.3) !important;
+  }
+
+  .year-header:active {
+    transform: translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(134, 158, 92, 0.2) !important;
+  }
+
+  .year-header i {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    color: var(--primary-color) !important;
+    font-size: 1.25rem !important;
+  }
+
+  .year-header:hover i {
+    transform: rotate(90deg) !important;
+  }
+
+  .year-count {
+    margin-left: auto !important;
+    font-size: 0.875rem !important;
+    color: var(--text-secondary) !important;
+    font-weight: 500 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: var(--border-radius-sm) !important;
+  }
+
+  .month-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.75rem 1rem !important;
+    cursor: pointer !important;
+    border-radius: var(--border-radius-sm) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-size: 0.875rem !important;
+    color: var(--text-secondary) !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .month-item::before {
+    content: '' !important;
+    position: absolute !important;
+    left: -100% !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(90deg, transparent, rgba(134, 158, 92, 0.1), transparent) !important;
+    transition: left 0.3s ease !important;
+  }
+
+  .month-item:hover::before {
+    left: 0 !important;
+  }
+
+  .month-item:hover {
+    background: var(--bg-tertiary) !important;
+    color: var(--text-primary) !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 2px 8px var(--shadow-light) !important;
+  }
+
+  .month-item:active {
+    transform: translateX(2px) !important;
+    box-shadow: 0 1px 4px var(--shadow-light) !important;
+  }
+
+  .month-count {
+    font-size: 0.75rem !important;
+    color: var(--text-tertiary) !important;
+    font-weight: 500 !important;
+    background: rgba(134, 158, 92, 0.1) !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: var(--border-radius-sm) !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .month-item:hover .month-count {
+    background: rgba(134, 158, 92, 0.2) !important;
+    color: var(--primary-color) !important;
+  }
+
+  .library-stats {
+    padding-top: 1rem !important;
+    border-top: 1px solid var(--border-color) !important;
+    background: rgba(134, 158, 92, 0.05) !important;
+    border-radius: var(--border-radius-sm) !important;
+    padding: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .library-stats h4 {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    margin: 0 0 1rem 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light)) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+  }
+
+  .stat-item {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0.5rem 0 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .stat-item:hover {
+    transform: translateX(2px) !important;
+  }
+
+  .stat-label {
+    color: var(--text-secondary) !important;
+  }
+
+  .stat-value {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    background: rgba(134, 158, 92, 0.1) !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: var(--border-radius-sm) !important;
   }
 
   /* 强制覆盖任何可能的冲突样式 */
   .diary-feed {
     display: block !important;
     grid-template-columns: none !important;
+  }
+
+  /* PC端导出下拉菜单样式 */
+  .export-dropdown {
+    position: relative !important;
+  }
+
+  .export-dropdown .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    margin-top: 0.5rem !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: 0 4px 12px var(--shadow-medium) !important;
+    min-width: 150px !important;
+    z-index: 1001 !important;
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .export-dropdown .dropdown-menu.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+  }
+
+  .export-dropdown .dropdown-menu a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+    color: var(--text-primary) !important;
+    text-decoration: none !important;
+    transition: background-color 0.2s ease !important;
+    font-size: 0.875rem !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
+  }
+
+  .export-dropdown .dropdown-menu a:hover {
+    background: var(--bg-tertiary) !important;
+  }
+
+  .export-dropdown .dropdown-menu a i {
+    font-size: 0.875rem !important;
+  }
+
+  /* 评论收起/展开样式 */
+  .diary-comments {
+    border-top: 1px solid var(--border-color) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .diary-comments.collapsed .comment-list {
+    display: none !important;
+  }
+
+  .diary-comments:not(.collapsed) .comment-list {
+    display: block !important;
+  }
+
+  .comments-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 1rem !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .diary-comments.collapsed .comments-header:hover {
+    background: var(--bg-tertiary) !important;
+  }
+
+  .comments-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+  }
+
+  .comments-title i {
+    transition: transform 0.3s ease !important;
+  }
+
+  .diary-comments.collapsed .comments-title i {
+    transform: rotate(-90deg) !important;
+  }
+
+  .add-comment-btn {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.5rem 1rem !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: var(--border-radius-sm) !important;
+    cursor: pointer !important;
+    font-size: 0.875rem !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .add-comment-btn:hover {
+    background: var(--primary-dark) !important;
+    transform: translateY(-1px) !important;
   }
 }
 
