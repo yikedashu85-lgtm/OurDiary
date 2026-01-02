@@ -477,8 +477,8 @@ async function loadDiariesFromGitHub() {
         const fileData = await fileResponse.json();
         const encryptedContent = atob(fileData.content);
         
-        // 解码Base64内容（匹配index.html的编码方式）
-        const decodedContent = decodeURIComponent(escape(encryptedContent));
+        // 解码Base64内容（匹配editor.js的编码方式）
+        const decodedContent = unescape(encodeURIComponent(encryptedContent));
         
         // 尝试解密
         const decryptedContent = decryptContent(decodedContent, keyHash);
