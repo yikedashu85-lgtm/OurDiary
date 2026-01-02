@@ -594,7 +594,7 @@
 #commentModal .form-textarea:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(139, 115, 85, 0.1);
+  box-shadow: var(--focus-ring);
 }
 
 #commentModal .form-textarea {
