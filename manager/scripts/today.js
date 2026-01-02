@@ -346,7 +346,6 @@ function hideCommentModal() {
 }
 
 function submitComment() {
-  console.log('准备发表评论:', { currentDiaryId, author, content });
   const author = document.getElementById('commentAuthor')?.value;
   const content = document.getElementById('commentContent')?.value?.trim();
   
@@ -517,16 +516,11 @@ setInterval(checkDateChange, 30000);
 // 评论同步到 GitHub（加密存储，复用正文逻辑）
 async function syncCommentsToGitHub(diaryId) {
   const token = getToken();
-  if (!token) {
-    console.warn('评论同步失败：无 token');
-    return;
-  }
+  if (!token) return;
 
   const comments = commentsData[diaryId] || [];
   const content = JSON.stringify(comments, null, 2);
   const path = `posts/comments/${diaryId}.json`;
-
-  console.log('开始同步评论（加密）:', { diaryId, path, commentCount: comments.length });
 
   try {
     // 加密内容（复用正文的加密方式）
@@ -541,10 +535,7 @@ async function syncCommentsToGitHub(diaryId) {
     if (getRes.status === 200) {
       const data = await getRes.json();
       sha = data.sha;
-      console.log('评论文件已存在，准备更新:', path);
-    } else if (getRes.status === 404) {
-      console.log('评论文件不存在，将新建:', path);
-    } else {
+    } else if (getRes.status !== 404) {
       console.error('获取评论文件失败:', getRes.status, await getRes.text());
       return;
     }
@@ -560,9 +551,7 @@ async function syncCommentsToGitHub(diaryId) {
       })
     });
 
-    if (res.ok) {
-      console.log('评论同步成功（加密）:', path);
-    } else {
+    if (!res.ok) {
       console.error('评论同步失败:', res.status, await res.text());
     }
   } catch (e) {
@@ -573,13 +562,9 @@ async function syncCommentsToGitHub(diaryId) {
 // 从 GitHub 加载评论（解密读取，复用正文逻辑）
 async function loadCommentsFromGitHub(diaryId) {
   const token = getToken();
-  if (!token) {
-    console.warn('加载评论失败：无 token');
-    return;
-  }
+  if (!token) return;
 
   const path = `posts/comments/${diaryId}.json`;
-  console.log('开始加载评论（解密）:', { diaryId, path });
 
   try {
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
@@ -604,7 +589,6 @@ async function loadCommentsFromGitHub(diaryId) {
       commentsData[diaryId] = comments;
       localStorage.setItem('diary_comments', JSON.stringify(commentsData));
       updateCommentsDisplay(diaryId);
-      console.log('评论加载成功（解密）:', path, `共${comments.length}条`);
     } else if (res.status === 404) {
       // 静默，无评论文件
     } else {
