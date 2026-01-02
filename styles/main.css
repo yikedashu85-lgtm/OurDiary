@@ -853,7 +853,19 @@ body {
     font-size: 1rem;
   }
 
-  /* 按年月组织的日常库样式 */
+  /* 提示消息动画 */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* 按年月组织的日常库样式 */
 .library-container {
   display: grid;
   grid-template-columns: 280px 1fr;
