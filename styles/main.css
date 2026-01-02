@@ -946,31 +946,31 @@ body {
     display: none !important;
   }
 
-  /* PC端今天的事页面优化 */
-  .page-header {
+  /* PC端今天的事页面优化 - 只影响today页面 */
+  body:has(#currentDate) .page-header {
     padding: 2rem 0;
     margin-bottom: 2rem;
   }
 
-  .page-title {
+  body:has(#currentDate) .page-title {
     font-size: 2rem;
     margin-bottom: 0.5rem;
   }
 
-  .page-subtitle {
+  body:has(#currentDate) .page-subtitle {
     font-size: 1rem;
     color: var(--text-secondary);
     margin-bottom: 1rem;
   }
 
-  .header-left {
+  body:has(#currentDate) .header-left {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 1rem;
   }
 
-  .header-actions {
+  body:has(#currentDate) .header-actions {
     margin-left: 0;
     order: -1;
   }
