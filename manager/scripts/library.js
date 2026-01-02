@@ -428,14 +428,6 @@ function exportAll(format) {
 }
 
 function openExportSelection(format) {
-  const dropdown = document.getElementById('exportDropdown');
-  if (dropdown) dropdown.classList.remove('show');
-
-  if (allDiaries.length === 0) {
-    alert('没有可导出的日记');
-    return;
-  }
-
   pendingExportFormat = format;
   const modal = document.getElementById('exportSelectModal');
   const list = document.getElementById('exportSelectList');
@@ -444,12 +436,94 @@ function openExportSelection(format) {
   const selectAll = document.getElementById('exportSelectAll');
   if (selectAll) selectAll.checked = true;
 
-  list.innerHTML = allDiaries.map((diary, idx) => {
+  // 初始化作者筛选列表
+  initAuthorFilters();
+
+  // 绑定筛选事件
+  bindExportFilterEvents();
+
+  // 初始渲染
+  renderExportSelectList();
+
+  modal.style.display = 'flex';
+}
+
+function initAuthorFilters() {
+  const container = document.getElementById('exportAuthorFilters');
+  if (!container) return;
+
+  const authors = Array.from(new Set(allDiaries.map(diary => diary.author).filter(Boolean)));
+  container.innerHTML = authors.map(author => `
+    <label>
+      <input type="checkbox" value="${author}" checked>
+      ${author}
+    </label>
+  `).join('');
+}
+
+function bindExportFilterEvents() {
+  const searchInput = document.getElementById('exportSearchInput');
+  const dateFrom = document.getElementById('exportDateFrom');
+  const dateTo = document.getElementById('exportDateTo');
+  const authorContainer = document.getElementById('exportAuthorFilters');
+
+  const applyFilters = () => renderExportSelectList();
+
+  if (searchInput) searchInput.addEventListener('input', applyFilters);
+  if (dateFrom) dateFrom.addEventListener('change', applyFilters);
+  if (dateTo) dateTo.addEventListener('change', applyFilters);
+  if (authorContainer) authorContainer.addEventListener('change', applyFilters);
+}
+
+function renderExportSelectList() {
+  const list = document.getElementById('exportSelectList');
+  if (!list) return;
+
+  // 获取筛选条件
+  const searchQuery = (document.getElementById('exportSearchInput')?.value || '').trim().toLowerCase();
+  const dateFrom = document.getElementById('exportDateFrom')?.value || '';
+  const dateTo = document.getElementById('exportDateTo')?.value || '';
+  const selectedAuthors = Array.from(document.querySelectorAll('#exportAuthorFilters input:checked'))
+    .map(cb => cb.value);
+
+  // 过滤
+  const filtered = allDiaries.filter((diary, idx) => {
+    // 搜索
+    if (searchQuery) {
+      const titleMatch = (diary.title || '').toLowerCase().includes(searchQuery);
+      const authorMatch = (diary.author || '').toLowerCase().includes(searchQuery);
+      const contentMatch = (diary.content || '').toLowerCase().includes(searchQuery);
+      const tagsMatch = (diary.tags || '').toLowerCase().includes(searchQuery);
+      if (!titleMatch && !authorMatch && !contentMatch && !tagsMatch) return false;
+    }
+
+    // 日期范围
+    const diaryDate = String(diary.date || '').split('T')[0];
+    if (dateFrom && diaryDate < dateFrom) return false;
+    if (dateTo && diaryDate > dateTo) return false;
+
+    // 作者
+    if (selectedAuthors.length > 0 && !selectedAuthors.includes(diary.author)) return false;
+
+    return true;
+  });
+
+  // 渲染列表
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state" style="padding:2rem;text-align:center;color:var(--text-secondary);">
+      <i class="ri-filter-off-line"></i>
+      <p>没有符合条件的日常</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((diary, idx) => {
+    const originalIdx = allDiaries.indexOf(diary);
     const dateStr = String(diary.date || '').split('T')[0];
-    const checkboxId = `export-cb-${idx}`;
+    const checkboxId = `export-cb-${originalIdx}`;
     return `
-      <div class="export-select-item" onclick="toggleExportItem(${idx})">
-        <input type="checkbox" id="${checkboxId}" class="square-checkbox" data-index="${idx}" checked onclick="event.stopPropagation(); syncSelectAllCheckbox()">
+      <div class="export-select-item" onclick="toggleExportItem(${originalIdx})">
+        <input type="checkbox" id="${checkboxId}" class="square-checkbox" data-index="${originalIdx}" checked onclick="event.stopPropagation(); syncSelectAllCheckbox()">
         <div class="meta">
           <div class="title">${diary.title}</div>
           <div class="sub">${diary.author} · ${dateStr}</div>
@@ -458,17 +532,10 @@ function openExportSelection(format) {
     `;
   }).join('');
 
-  modal.style.display = 'flex';
+  syncSelectAllCheckbox();
 }
 
 function hideExportSelectModal() {
-  const modal = document.getElementById('exportSelectModal');
-  if (modal) modal.style.display = 'none';
-  pendingExportFormat = null;
-  pendingExportIndexes = [];
-}
-
-function hideExportSelectModalKeepState() {
   const modal = document.getElementById('exportSelectModal');
   if (modal) modal.style.display = 'none';
 }
@@ -507,12 +574,12 @@ function confirmExportSelection() {
     .filter(n => !Number.isNaN(n));
 
   if (selected.length === 0) {
-    alert('请至少选择一篇日记');
+    showNotification('请至少选择一篇日常');
     return;
   }
 
   pendingExportIndexes = selected;
-  hideExportSelectModalKeepState();
+  hideExportSelectModal();
   showExportCommentConfirmModal();
 }
 
@@ -528,11 +595,6 @@ function hideExportCommentConfirmModal() {
   if (pendingSingleExportIndex !== null || pendingSingleExportFormat) {
     pendingSingleExportIndex = null;
     pendingSingleExportFormat = null;
-  }
-
-  if (pendingExportFormat && pendingExportIndexes.length > 0) {
-    const exportSelectModal = document.getElementById('exportSelectModal');
-    if (exportSelectModal) exportSelectModal.style.display = 'flex';
   }
 }
 
@@ -552,7 +614,6 @@ function confirmExportWithComments(includeComments) {
     exportSelectedDiaries(pendingExportFormat, pendingExportIndexes, includeComments);
   }
   hideExportCommentConfirmModal();
-  hideExportSelectModal();
 }
 
 function buildCommentsMarkdown(comments) {

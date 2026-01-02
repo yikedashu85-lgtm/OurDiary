@@ -168,6 +168,32 @@
         </button>
       </div>
       <div class="modal-body">
+        <!-- 筛选区 -->
+        <div class="export-filters">
+          <div class="filter-row">
+            <div class="filter-item filter-search">
+              <i class="ri-search-line filter-icon"></i>
+              <input type="text" id="exportSearchInput" class="filter-input" placeholder="搜索标题、标签、正文、作者...">
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item">
+              <label for="exportDateFrom" class="filter-label">开始日期</label>
+              <input type="date" id="exportDateFrom" class="filter-input">
+            </div>
+            <div class="filter-item">
+              <label for="exportDateTo" class="filter-label">结束日期</label>
+              <input type="date" id="exportDateTo" class="filter-input">
+            </div>
+          </div>
+          <div class="filter-row">
+            <div class="filter-item filter-authors">
+              <label class="filter-label">作者</label>
+              <div id="exportAuthorFilters" class="author-checkboxes"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="select-all-row" onclick="toggleSelectAllExportItems()">
           <input type="checkbox" id="exportSelectAll" class="square-checkbox" onclick="event.stopPropagation(); event.preventDefault(); toggleSelectAllExportItems()">
           <span>全选</span>
