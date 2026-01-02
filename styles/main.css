@@ -611,49 +611,6 @@ body {
   border-top: 1px solid var(--border-color);
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar.open {
-    transform: translateX(0);
-  }
-  
-  .main-content {
-    margin-left: 0;
-    padding: 1rem;
-  }
-  
-  .hero-title {
-    font-size: 2.5rem;
-  }
-  
-  .hero-subtitle {
-    font-size: 1.25rem;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .recent-cards {
-    grid-template-columns: 1fr;
-  }
-  
-  .hero-actions {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .btn {
-    width: 100%;
-    max-width: 300px;
-  }
-}
-
 /* 滚动条样式 */
 ::-webkit-scrollbar {
   width: 8px;
@@ -668,9 +625,8 @@ body {
   border-radius: 4px;
 }
 
-/* 响应式设计 */
+/* 移动端完全重新设计 */
 @media (max-width: 768px) {
-  /* 移动端完全重新设计 */
   body {
     font-size: 16px;
     line-height: 1.5;
@@ -683,7 +639,7 @@ body {
     overflow: hidden;
   }
 
-  /* 顶部导航栏 */
+  /* 移动端侧边栏改为顶部导航 */
   .sidebar {
     width: 100%;
     height: auto;
