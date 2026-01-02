@@ -351,8 +351,20 @@ function showNotification(message) {
 
 // 加密/解密工具函数
 function deriveKeyFromToken(token) {
-  const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
-  return hash;
+  console.log('deriveKeyFromToken called with token:', !!token, token?.length);
+  if (!token) {
+    console.error('Token is undefined or empty');
+    return null;
+  }
+  
+  try {
+    const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
+    console.log('Key hash generated:', !!hash, hash.toString().length);
+    return hash;
+  } catch(e) {
+    console.error('Error generating key hash:', e);
+    return null;
+  }
 }
 
 function encryptContent(content, keyHash) {
@@ -368,10 +380,17 @@ function encryptContent(content, keyHash) {
 function decryptContent(encryptedContent, keyHash) {
   try {
     // 检查输入
-    if (!encryptedContent || !keyHash) {
-      console.warn('解密失败：缺少必要参数');
+    if (!encryptedContent) {
+      console.warn('解密失败：缺少加密内容');
       return null;
     }
+    
+    if (!keyHash) {
+      console.warn('解密失败：缺少密钥哈希');
+      return null;
+    }
+
+    console.log('Attempting decryption with keyHash:', !!keyHash, keyHash.toString().length);
 
     const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
     const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
@@ -391,7 +410,7 @@ function decryptContent(encryptedContent, keyHash) {
       hasEncryptedContent: !!encryptedContent,
       hasKeyHash: !!keyHash,
       encryptedContentLength: encryptedContent?.length,
-      keyHashLength: keyHash?.length
+      keyHashLength: keyHash?.toString?.()?.length || 'undefined'
     });
     return null;
   }
