@@ -329,6 +329,73 @@ function renderDiaryListByMonth(yearMonthList) {
   }).join('');
 }
 
+// 渲染单个日记卡片
+function renderDiaryCard(diary) {
+  const dateStr = String(diary.date || '').split('T')[0];
+  const diaryId = getDiaryCommentId(diary);
+  const commentCount = (commentsData[diaryId] || []).length;
+  
+  return `
+    <div class="diary-card">
+      <div class="diary-header">
+        <div class="diary-author">
+          <div class="author-avatar">${diary.author.charAt(0)}</div>
+          <div class="author-info">
+            <div class="author-name">${diary.author}</div>
+            <div class="diary-time">${dateStr}</div>
+          </div>
+        </div>
+        <div class="diary-actions">
+          <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiary(${allDiaries.indexOf(diary)})" title="展开/收起">
+            <i class="ri-arrow-down-s-line"></i>
+          </button>
+          <div class="export-dropdown">
+            <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiaryExportDropdown(${allDiaries.indexOf(diary)})" title="导出">
+              <i class="ri-download-2-line"></i>
+            </button>
+            <div id="exportDropdown-${allDiaries.indexOf(diary)}" class="diary-export-menu">
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${allDiaries.indexOf(diary)}, 'md'); return false;">
+                <i class="ri-markdown-line"></i>
+                Markdown (.md)
+              </a>
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${allDiaries.indexOf(diary)}, 'txt'); return false;">
+                <i class="ri-file-text-line"></i>
+                纯文本 (.txt)
+              </a>
+              <a href="#" onclick="event.stopPropagation(); exportSingleDiary(${allDiaries.indexOf(diary)}, 'pdf'); return false;">
+                <i class="ri-file-pdf-line"></i>
+                PDF (.pdf)
+              </a>
+            </div>
+          </div>
+          <button class="diary-action-btn" onclick="event.stopPropagation(); showLibraryDeleteConfirm(${allDiaries.indexOf(diary)})" title="删除">
+            <i class="ri-delete-bin-6-line"></i>
+          </button>
+        </div>
+      </div>
+      <h2 class="diary-title">${diary.title}</h2>
+      ${diary.tags ? `<div class="diary-tags">${diary.tags.split(/[,，\s]+/).filter(Boolean).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
+      <div class="diary-content" id="content-${allDiaries.indexOf(diary)}" style="display: none;" onclick="event.stopPropagation()">
+        ${marked.parse(diary.content)}
+      </div>
+      <div class="diary-comments" id="comments-${diaryId}" onclick="event.stopPropagation()">
+        <div class="comments-header">
+          <div class="comments-title">
+            <i class="ri-chat-3-line"></i>
+            评论
+            <span class="comment-count">${commentCount}</span>
+          </div>
+          <button class="add-comment-btn" onclick="event.stopPropagation(); showCommentModal('${diaryId}')">
+            <i class="ri-add-line"></i>
+            添加评论
+          </button>
+        </div>
+        <div class="comment-list"></div>
+      </div>
+    </div>
+  `;
+}
+
 // 从特定数据渲染日记列表（按月分组）
 function renderDiaryListByMonthFromData(data, yearMonthList) {
   return yearMonthList.map(item => {
