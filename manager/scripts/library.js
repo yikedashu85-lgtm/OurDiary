@@ -367,6 +367,12 @@ function encryptContent(content, keyHash) {
 
 function decryptContent(encryptedContent, keyHash) {
   try {
+    // 检查输入
+    if (!encryptedContent || !keyHash) {
+      console.warn('解密失败：缺少必要参数');
+      return null;
+    }
+
     const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
     const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
       iv: iv,
@@ -374,13 +380,20 @@ function decryptContent(encryptedContent, keyHash) {
       padding: CryptoJS.pad.Pkcs7
     });
     const result = decrypted.toString(CryptoJS.enc.Utf8);
+    
     if (!result) {
-      throw new Error('解密失败');
+      throw new Error('解密结果为空');
     }
     return result;
   } catch(e) {
-    console.warn('解密失败，可能文件不是用当前 token 加密的:', e.message);
-    return null; // 返回 null 而不是抛出错误
+    console.warn('解密失败详情:', {
+      error: e.message,
+      hasEncryptedContent: !!encryptedContent,
+      hasKeyHash: !!keyHash,
+      encryptedContentLength: encryptedContent?.length,
+      keyHashLength: keyHash?.length
+    });
+    return null;
   }
 }
 
@@ -482,6 +495,32 @@ async function loadDiariesFromGitHub() {
     // 等待所有文件加载完成
     const results = await Promise.all(filePromises);
     allDiaries = results.filter(diary => diary !== null);
+
+    // 如果所有文件都解密失败，提示用户
+    if (allDiaries.length === 0 && mdFiles.length > 0) {
+      diaryList.innerHTML = `
+        <div class="error-state">
+          <i class="ri-lock-line"></i>
+          <h3>解密失败</h3>
+          <p>无法解密日记文件，可能的原因：</p>
+          <ul style="text-align: left; max-width: 400px; margin: 1rem auto;">
+            <li>GitHub Token 不匹配</li>
+            <li>文件使用了不同的加密方式</li>
+            <li>Token 权限不足</li>
+          </ul>
+          <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="showTokenModal()">
+              <i class="ri-key-2-line"></i>
+              重新设置 Token
+            </button>
+            <button class="btn btn-secondary" onclick="refreshLibrary()">
+              <i class="ri-refresh-line"></i>
+              重试
+            </button>
+          </div>
+        </div>`;
+      return;
+    }
 
     // 按日期排序
     allDiaries.sort((a, b) => new Date(b.date) - new Date(a.date));
