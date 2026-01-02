@@ -303,7 +303,7 @@ function renderDiaries() {
             <i class="ri-arrow-down-s-line"></i>
           </button>
           <div class="export-dropdown">
-            <button class="diary-action-btn" onclick="event.stopPropagation(); toggleExportDropdown(${index})" title="导出">
+            <button class="diary-action-btn" onclick="event.stopPropagation(); toggleDiaryExportDropdown(${index})" title="导出">
               <i class="ri-download-2-line"></i>
             </button>
             <div id="exportDropdown-${index}" class="diary-export-menu">
@@ -439,8 +439,8 @@ async function confirmLibraryDelete() {
   }
 }
 
-// 切换导出下拉菜单
-function toggleExportDropdown(index) {
+// 切换日常库导出下拉菜单
+function toggleDiaryExportDropdown(index) {
   const dropdown = document.getElementById(`exportDropdown-${index}`);
   if (dropdown) {
     // 关闭其他所有日常库导出下拉菜单
