@@ -350,19 +350,22 @@ function submitComment() {
   const author = document.getElementById('commentAuthor')?.value;
   const content = document.getElementById('commentContent')?.value?.trim();
   
+  // 提前保存 currentDiaryId，避免被 hideCommentModal 清空
+  const diaryId = currentDiaryId;
+  
   if (!content) {
     alert('请输入评论内容');
     return;
   }
   
-  if (!currentDiaryId) {
+  if (!diaryId) {
     alert('评论失败，请重试');
     return;
   }
   
   // 初始化评论数据
-  if (!commentsData[currentDiaryId]) {
-    commentsData[currentDiaryId] = [];
+  if (!commentsData[diaryId]) {
+    commentsData[diaryId] = [];
   }
   
   // 添加新评论
@@ -372,16 +375,16 @@ function submitComment() {
     time: new Date().toISOString()
   };
   
-  commentsData[currentDiaryId].push(newComment);
+  commentsData[diaryId].push(newComment);
   
   // 保存到本地存储
   localStorage.setItem('diary_comments', JSON.stringify(commentsData));
   
   // 更新界面
-  updateCommentsDisplay(currentDiaryId);
+  updateCommentsDisplay(diaryId);
   
   // 同步到 GitHub
-  syncCommentsToGitHub(currentDiaryId);
+  syncCommentsToGitHub(diaryId);
   
   // 关闭模态框
   hideCommentModal();

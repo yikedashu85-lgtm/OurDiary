@@ -696,7 +696,9 @@ function exportDiaryFile(diary, format, includeComments) {
 }
 
 function showCommentModal(diaryId) {
+  console.log('showCommentModal 被调用，diaryId:', diaryId);
   currentDiaryId = diaryId;
+  console.log('设置 currentDiaryId 为:', currentDiaryId);
   const modal = document.getElementById('commentModal');
   if (!modal) return;
   modal.style.display = 'flex';
@@ -718,32 +720,34 @@ function submitComment() {
   const author = document.getElementById('commentAuthor')?.value;
   const content = document.getElementById('commentContent')?.value?.trim();
   
-  console.log('准备发表评论:', { currentDiaryId, author, content });
+  // 提前保存 currentDiaryId，避免被 hideCommentModal 清空
+  const diaryId = currentDiaryId;
+  console.log('准备发表评论:', { diaryId, author, content });
 
   if (!content) {
     showNotification('请输入评论内容');
     return;
   }
-  if (!currentDiaryId) {
+  if (!diaryId) {
     showNotification('评论失败，请重试');
     return;
   }
 
-  if (!commentsData[currentDiaryId]) {
-    commentsData[currentDiaryId] = [];
+  if (!commentsData[diaryId]) {
+    commentsData[diaryId] = [];
   }
-  commentsData[currentDiaryId].push({
+  commentsData[diaryId].push({
     author: author,
     content: content,
     time: new Date().toISOString()
   });
   persistCommentsData();
-  updateCommentsDisplay(currentDiaryId);
+  updateCommentsDisplay(diaryId);
   hideCommentModal();
   showNotification('评论发表成功！');
 
   // 同步评论到 GitHub
-  syncCommentsToGitHub(currentDiaryId);
+  syncCommentsToGitHub(diaryId);
 }
 
 function updateCommentsDisplay(diaryId) {
