@@ -110,18 +110,21 @@ function showNotification(message) {
   notification.textContent = message;
   notification.style.cssText = [
     'position:fixed',
-    'top:12px',
+    'top:20px',
     'left:50%',
     'transform:translateX(-50%)',
     'background:var(--primary-color)',
     'color:#fff',
-    'padding:12px 16px',
+    'padding:12px 24px',
     'border-radius:12px',
     'box-shadow:0 8px 24px rgba(0,0,0,0.12)',
-    'z-index:3000'
+    'z-index:3000',
+    'font-weight:500',
+    'font-size:14px',
+    'animation:slideDown 0.3s ease-out'
   ].join(';');
   document.body.appendChild(notification);
-  setTimeout(() => notification.remove(), 2000);
+  setTimeout(() => notification.remove(), 2500);
 }
 
 function showAppAlert(message, title = '提示') {
