@@ -504,11 +504,16 @@ setInterval(checkDateChange, 30000);
 // 评论同步到 GitHub
 async function syncCommentsToGitHub(diaryId) {
   const token = getToken();
-  if (!token) return;
+  if (!token) {
+    console.warn('评论同步失败：无 token');
+    return;
+  }
 
   const comments = commentsData[diaryId] || [];
   const content = JSON.stringify(comments, null, 2);
   const path = `posts/comments/${diaryId}.json`;
+
+  console.log('开始同步评论:', { diaryId, path, commentCount: comments.length });
 
   try {
     let sha = null;
@@ -518,6 +523,12 @@ async function syncCommentsToGitHub(diaryId) {
     if (getRes.status === 200) {
       const data = await getRes.json();
       sha = data.sha;
+      console.log('评论文件已存在，准备更新:', path);
+    } else if (getRes.status === 404) {
+      console.log('评论文件不存在，将新建:', path);
+    } else {
+      console.error('获取评论文件失败:', getRes.status, await getRes.text());
+      return;
     }
 
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
@@ -530,8 +541,10 @@ async function syncCommentsToGitHub(diaryId) {
       })
     });
 
-    if (!res.ok) {
-      console.error('评论同步失败:', await res.text());
+    if (res.ok) {
+      console.log('评论同步成功:', path);
+    } else {
+      console.error('评论同步失败:', res.status, await res.text());
     }
   } catch (e) {
     console.error('评论同步异常:', e);
@@ -541,9 +554,13 @@ async function syncCommentsToGitHub(diaryId) {
 // 从 GitHub 加载评论
 async function loadCommentsFromGitHub(diaryId) {
   const token = getToken();
-  if (!token) return;
+  if (!token) {
+    console.warn('加载评论失败：无 token');
+    return;
+  }
 
   const path = `posts/comments/${diaryId}.json`;
+  console.log('开始加载评论:', { diaryId, path });
 
   try {
     const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`, {
@@ -557,11 +574,14 @@ async function loadCommentsFromGitHub(diaryId) {
       commentsData[diaryId] = comments;
       localStorage.setItem('diary_comments', JSON.stringify(commentsData));
       updateCommentsDisplay(diaryId);
-    } else if (res.status !== 404) {
+      console.log('评论加载成功:', path, `共${comments.length}条`);
+    } else if (res.status === 404) {
+      // 静默，无评论文件
+    } else {
       console.error('加载评论失败:', res.status, await res.text());
     }
   } catch (e) {
-    // 忽略网络或解析错误
+    console.error('加载评论异常:', e);
   }
 }
 
