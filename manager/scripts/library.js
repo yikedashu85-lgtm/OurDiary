@@ -351,7 +351,6 @@ function showNotification(message) {
 
 // 加密/解密工具函数
 function deriveKeyFromToken(token) {
-  console.log('deriveKeyFromToken called with token:', !!token, token?.length);
   if (!token) {
     console.error('Token is undefined or empty');
     return null;
@@ -359,7 +358,6 @@ function deriveKeyFromToken(token) {
   
   try {
     const hash = CryptoJS.SHA256(token + 'OurDiarySalt2024');
-    console.log('Key hash generated:', !!hash, hash.toString().length);
     return hash;
   } catch(e) {
     console.error('Error generating key hash:', e);
@@ -390,8 +388,6 @@ function decryptContent(encryptedContent, keyHash) {
       return null;
     }
 
-    console.log('Attempting decryption with keyHash:', !!keyHash, keyHash.toString().length);
-
     const iv = CryptoJS.enc.Hex.parse('00000000000000000000000000000000');
     const decrypted = CryptoJS.AES.decrypt(encryptedContent, keyHash, {
       iv: iv,
@@ -405,13 +401,7 @@ function decryptContent(encryptedContent, keyHash) {
     }
     return result;
   } catch(e) {
-    console.warn('解密失败详情:', {
-      error: e.message,
-      hasEncryptedContent: !!encryptedContent,
-      hasKeyHash: !!keyHash,
-      encryptedContentLength: encryptedContent?.length,
-      keyHashLength: keyHash?.toString?.()?.length || 'undefined'
-    });
+    console.warn('解密失败:', e.message);
     return null;
   }
 }
@@ -477,31 +467,9 @@ async function loadDiariesFromGitHub() {
         const fileData = await fileResponse.json();
         const encryptedContent = atob(fileData.content);
         
-        // 解码Base64内容 - 尝试多种编码方式
-        let decodedContent = encryptedContent;
-        
-        // 尝试方式1：直接使用（可能不需要额外编码）
-        let decryptedContent = decryptContent(decodedContent, keyHash);
-        if (decryptedContent) {
-          console.log('方式1成功：直接解密');
-        } else {
-          // 尝试方式2：unescape(encodeURIComponent)
-          decodedContent = unescape(encodeURIComponent(encryptedContent));
-          decryptedContent = decryptContent(decodedContent, keyHash);
-          if (decryptedContent) {
-            console.log('方式2成功：unescape(encodeURIComponent)');
-          } else {
-            // 尝试方式3：decodeURIComponent(escape)
-            decodedContent = decodeURIComponent(escape(encryptedContent));
-            decryptedContent = decryptContent(decodedContent, keyHash);
-            if (decryptedContent) {
-              console.log('方式3成功：decodeURIComponent(escape)');
-            } else {
-              console.log('所有方式都失败了');
-              return null;
-            }
-          }
-        }
+        // 解码Base64内容 - 直接使用，不需要额外编码
+        const decodedContent = encryptedContent;
+        const decryptedContent = decryptContent(decodedContent, keyHash);
         if (!decryptedContent) return null; // 跳过无法解密的文件
         
         // 解析 front matter
