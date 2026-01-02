@@ -32,7 +32,7 @@ async function loadDiaryForEdit(filename) {
       headers: { Authorization: `token ${token}` }
     });
     if (!res.ok) {
-      throw new Error('无法加载日记');
+      throw new Error('无法加载日常');
     }
     const fileData = await res.json();
     const encryptedContent = atob(fileData.content);
@@ -43,7 +43,7 @@ async function loadDiaryForEdit(filename) {
 
     const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
     if (!frontMatterMatch) {
-      throw new Error('日记格式不正确');
+      throw new Error('日常格式不正确');
     }
 
     const metadata = {};
@@ -195,7 +195,7 @@ window.onclick = function(event) {
   }
 }
 
-// 导出日记
+// 导出日常
 async function exportDiary(format) {
   const dropdown = document.getElementById('exportDropdown');
   dropdown.classList.remove('show');

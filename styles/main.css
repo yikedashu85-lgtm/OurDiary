@@ -1,6 +1,6 @@
 /* 全局样式 */
 :root {
-  /* 温馨日记主题色彩 */
+  /* 温馨日常主题色彩 */
   --primary-color: #1f3331;
   --primary-light: #869e5c;
   --primary-dark: #142424;
@@ -498,7 +498,7 @@ body {
 .card-purple .feature-icon { background: linear-gradient(135deg, var(--accent-color), var(--primary-color)); }
 .card-green .feature-icon { background: linear-gradient(135deg, var(--primary-light), var(--primary-dark)); }
 
-/* 最近日记预览 */
+/* 最近日常预览 */
 .recent-section {
   margin-bottom: 4rem;
 }

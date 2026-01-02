@@ -1,9 +1,9 @@
-// 日记库页面专用脚本
+// 日常库页面专用脚本
 const owner = "yikedashu85-lgtm";
 const repo = "OurDiary";
 const diaryList = document.getElementById('diary-list');
 let allDiaries = [];
-let diariesByMonth = {}; // 按年月组织的日记数据
+let diariesByMonth = {}; // 按年月组织的日常数据
 
 let commentsData = {};
 let currentDiaryId = null;
@@ -36,7 +36,7 @@ function getDiaryCommentId(diary) {
   return toSafeId(raw || `${diary.date}-${diary.author}`);
 }
 
-// 按年月组织日记数据
+// 按年月组织日常数据
 function organizeDiariesByMonth(diaries) {
   const organized = {};
   
@@ -56,7 +56,7 @@ function organizeDiariesByMonth(diaries) {
     organized[year][month].push(diary);
   });
   
-  // 对每个月的日记按日期排序（最新的在前）
+  // 对每个月的日常按日期排序（最新的在前）
   Object.keys(organized).forEach(year => {
     Object.keys(organized[year]).forEach(month => {
       organized[year][month].sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -124,7 +124,7 @@ function getYearMonthListFromData(data) {
   return yearMonths;
 }
 
-// 渲染按年月组织的日记库
+// 渲染按年月组织的日常库
 function renderLibraryByMonth() {
   console.log('renderLibraryByMonth called');
   console.log('diariesByMonth:', diariesByMonth);
@@ -134,8 +134,8 @@ function renderLibraryByMonth() {
     diaryList.innerHTML = `
       <div class="empty-state">
         <i class="ri-book-line"></i>
-        <h3>还没有日记</h3>
-        <p>开始写第一篇日记吧</p>
+        <h3>还没有日常</h3>
+        <p>开始写第一篇日常吧</p>
         <button class="btn btn-primary" onclick="window.location.href='index.html'">
           <i class="ri-edit-line"></i>
           写日常
@@ -149,7 +149,7 @@ function renderLibraryByMonth() {
   const searchInput = document.getElementById('searchInput');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   
-  // 过滤日记
+  // 过滤日常
   let filteredDiaries = allDiaries;
   if (query) {
     filteredDiaries = allDiaries.filter(diary => {
@@ -170,8 +170,8 @@ function renderLibraryByMonth() {
       </div>` : `
       <div class="empty-state">
         <i class="ri-book-line"></i>
-        <h3>还没有日记</h3>
-        <p>开始写第一篇日记吧</p>
+        <h3>还没有日常</h3>
+        <p>开始写第一篇日常吧</p>
         <button class="btn btn-primary" onclick="window.location.href='index.html'">
           <i class="ri-edit-line"></i>
           写日常
@@ -308,7 +308,7 @@ function renderStatistics(diaries = allDiaries) {
   
   return `
     <div class="stat-item">
-      <span class="stat-label">总日记数</span>
+      <span class="stat-label">总日常数</span>
       <span class="stat-value">${totalDiaries}篇</span>
     </div>
     <div class="stat-item">
@@ -330,7 +330,7 @@ function renderStatistics(diaries = allDiaries) {
   `;
 }
 
-// 渲染日记列表（按月分组）
+// 渲染日常列表（按月分组）
 function renderDiaryListByMonth(yearMonthList) {
   return yearMonthList.map(item => {
     const diaries = diariesByMonth[item.year][item.month];
@@ -357,7 +357,7 @@ function toggleComments(diaryId) {
   }
 }
 
-// 渲染单个日记卡片
+// 渲染单个日常卡片
 function renderDiaryCard(diary) {
   const dateStr = String(diary.date || '').split('T')[0];
   const diaryId = getDiaryCommentId(diary);
@@ -424,7 +424,7 @@ function renderDiaryCard(diary) {
   `;
 }
 
-// 从特定数据渲染日记列表（按月分组）
+// 从特定数据渲染日常列表（按月分组）
 function renderDiaryListByMonthFromData(data, yearMonthList) {
   return yearMonthList.map(item => {
     const diaries = data[item.year][item.month];
@@ -582,7 +582,7 @@ function decryptContent(encryptedContent, keyHash) {
   }
 }
 
-// 从 GitHub 获取所有日记
+// 从 GitHub 获取所有日常
 async function loadDiariesFromGitHub() {
   const token = getToken();
   if (!token) {
@@ -590,7 +590,7 @@ async function loadDiariesFromGitHub() {
       <div class="empty-state">
         <i class="ri-key-2-line"></i>
         <h3>需要设置 GitHub Token</h3>
-        <p>请先设置 GitHub Token 来查看日记库</p>
+        <p>请先设置 GitHub Token 来查看日常库</p>
         <button class="btn btn-primary" onclick="showTokenModal()">
           <i class="ri-key-2-line"></i>
           设置 Token
@@ -602,7 +602,7 @@ async function loadDiariesFromGitHub() {
   diaryList.innerHTML = `
     <div class="loading-state">
       <i class="ri-loader-4-line animate-spin"></i>
-      <p>正在加载日记库...</p>
+      <p>正在加载日常库...</p>
     </div>`;
 
   try {
@@ -621,11 +621,11 @@ async function loadDiariesFromGitHub() {
       diaryList.innerHTML = `
         <div class="empty-state">
           <i class="ri-book-line"></i>
-          <h3>还没有日记</h3>
-          <p>快去写下第一篇日记吧！</p>
+          <h3>还没有日常</h3>
+          <p>快去写下第一篇日常吧！</p>
           <button class="btn btn-primary" onclick="window.location.href='index.html'">
             <i class="ri-edit-line"></i>
-            写日记
+            写日常
           </button>
         </div>`;
       return;
@@ -685,7 +685,7 @@ async function loadDiariesFromGitHub() {
         <div class="error-state">
           <i class="ri-lock-line"></i>
           <h3>解密失败</h3>
-          <p>无法解密任何日记文件，可能的原因：</p>
+          <p>无法解密任何日常文件，可能的原因：</p>
           <ul style="text-align: left; max-width: 400px; margin: 1rem auto;">
             <li>GitHub Token 不匹配</li>
             <li>文件使用了不同的加密方式</li>
@@ -728,7 +728,7 @@ async function loadDiariesFromGitHub() {
       <div class="error-state">
         <i class="ri-error-warning-line"></i>
         <h3>加载失败</h3>
-        <p>无法加载日记库: ${e.message}</p>
+        <p>无法加载日常库: ${e.message}</p>
         <button class="btn btn-secondary" onclick="refreshLibrary()">
           <i class="ri-refresh-line"></i>
           重试
@@ -842,14 +842,14 @@ function toggleDiary(index) {
   }
 }
 
-// 导出单个日记
+// 导出单个日常
 function exportSingleDiary(index, format) {
   pendingSingleExportIndex = index;
   pendingSingleExportFormat = format;
   showExportCommentConfirmModal();
 }
 
-// 导出所有日记
+// 导出所有日常
 function exportAll(format) {
   openExportSelection(format);
 }
@@ -1069,7 +1069,7 @@ function exportSelectedDiaries(format, selectedIndexes, includeComments) {
     exportDiaryFile(diary, format, includeComments);
   });
 
-  showNotification('已开始导出所选日记');
+  showNotification('已开始导出所选日常');
 }
 
 function exportDiaryFile(diary, format, includeComments) {

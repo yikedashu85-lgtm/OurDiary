@@ -73,7 +73,7 @@ function updateCurrentDate() {
   }
 }
 
-// 从 GitHub 加载今天的日记
+// 从 GitHub 加载今天的日常
 async function loadTodayDiaries() {
   const token = getToken();
   if (!token) {
@@ -81,7 +81,7 @@ async function loadTodayDiaries() {
       <div class="empty-state">
         <i class="ri-key-2-line"></i>
         <h3>需要设置 GitHub Token</h3>
-        <p>请先设置 GitHub Token 来查看日记</p>
+        <p>请先设置 GitHub Token 来查看日常</p>
         <button class="btn btn-primary" onclick="showTokenModal()">
           <i class="ri-key-2-line"></i>
           设置 Token
@@ -96,7 +96,7 @@ async function loadTodayDiaries() {
   feed.innerHTML = `
     <div class="loading-state">
       <i class="ri-loader-4-line animate-spin"></i>
-      <p>正在加载今天的日记 (${today})...</p>
+      <p>正在加载今天的日常 (${today})...</p>
     </div>`;
 
   try {
@@ -117,13 +117,13 @@ async function loadTodayDiaries() {
       return isMd && startsWithToday;
     });
     
-    console.log(`今天日期: ${today}, 找到 ${todayFiles.length} 个今天的日记文件:`, todayFiles.map(f => f.name));
+    console.log(`今天日期: ${today}, 找到 ${todayFiles.length} 个今天的日常文件:`, todayFiles.map(f => f.name));
     
     if (todayFiles.length === 0) {
       feed.innerHTML = `
         <div class="empty-state">
           <i class="ri-calendar-2-line"></i>
-          <h3>今天还没有日记</h3>
+          <h3>今天还没有日常</h3>
           <p>今天 (${today}) 还没有记录</p>
         </div>`;
       return;
@@ -178,7 +178,7 @@ async function loadTodayDiaries() {
       feed.innerHTML = `
         <div class="empty-state">
           <i class="ri-calendar-2-line"></i>
-          <h3>今天还没有日记</h3>
+          <h3>今天还没有日常</h3>
           <p>今天 (${today}) 还没有记录</p>
         </div>`;
       return;
@@ -190,7 +190,7 @@ async function loadTodayDiaries() {
       <div class="error-state">
         <i class="ri-error-warning-line"></i>
         <h3>加载失败</h3>
-        <p>无法加载今天的日记: ${e.message}</p>
+        <p>无法加载今天的日常: ${e.message}</p>
         <button class="btn btn-secondary" onclick="refreshFeed()">
           <i class="ri-refresh-line"></i>
           重试
@@ -209,7 +209,7 @@ function toSafeId(input) {
   }
 }
 
-// 复制日记内容
+// 复制日常内容
 function copyDiary(index) {
   const entries = document.querySelectorAll('.diary-card');
   const entry = entries[index];
@@ -221,14 +221,14 @@ function copyDiary(index) {
     
     navigator.clipboard.writeText(text).then(() => {
       // 显示复制成功提示
-      showNotification('日记已复制到剪贴板');
+      showNotification('日常已复制到剪贴板');
     }).catch(() => {
       showNotification('复制失败，请手动复制', 'error');
     });
   }
 }
 
-// 分享日记
+// 分享日常
 function shareDiary(index) {
   const entries = document.querySelectorAll('.diary-card');
   const entry = entries[index];
@@ -239,7 +239,7 @@ function shareDiary(index) {
     if (navigator.share) {
       navigator.share({
         title: title,
-        text: `查看今天的日记：${title}`,
+        text: `查看今天的日常：${title}`,
         url: url
       });
     } else {
@@ -251,7 +251,7 @@ function shareDiary(index) {
   }
 }
 
-// 显示日记
+// 显示日常
 function displayDiaries(diaries) {
   const feed = document.getElementById('diary-feed');
 
@@ -259,7 +259,7 @@ function displayDiaries(diaries) {
     feed.innerHTML = `
       <div class="empty-state">
         <i class="ri-calendar-2-line"></i>
-        <h3>今天还没有日记</h3>
+        <h3>今天还没有日常</h3>
         <p>今天 (${todayStr()}) 还没有记录</p>
       </div>`;
     return;
@@ -484,7 +484,7 @@ function refreshFeed() {
     }, 500);
   }
   
-  // 重新加载日记（现在所有日记都会包含评论功能）
+  // 重新加载日常（现在所有日常都会包含评论功能）
   loadTodayDiaries();
 }
 
@@ -601,7 +601,7 @@ async function loadCommentsFromGitHub(diaryId) {
   }
 }
 
-// 每5分钟自动刷新一次内容（获取新日记）
+// 每5分钟自动刷新一次内容（获取新日常）
 setInterval(refreshFeed, 300000);
 
 

@@ -93,7 +93,7 @@ function initPhotoCarousel() {
   }, 4500);
 }
 
-// 加载最近日记
+// 加载最近日常
 async function loadRecentDiaries() {
   const token = getToken();
   if (!token) {
@@ -179,7 +179,7 @@ async function loadRecentDiaries() {
       }
     }
   } catch(e) {
-    console.error('加载最近日记失败:', e);
+    console.error('加载最近日常失败:', e);
   }
 }
 

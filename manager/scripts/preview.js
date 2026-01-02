@@ -83,11 +83,11 @@ async function loadDiary() {
     container.innerHTML = `
       <div class="empty-state">
         <i class="ri-file-warning-line"></i>
-        <h3>未指定日记</h3>
-        <p>请从日记库进入预览页</p>
+        <h3>未指定日常</h3>
+        <p>请从日常库进入预览页</p>
         <button class="btn btn-primary" onclick="goBackToLibrary()">
           <i class="ri-arrow-left-line"></i>
-          返回日记库
+          返回日常库
         </button>
       </div>`;
     return;
@@ -99,7 +99,7 @@ async function loadDiary() {
       <div class="empty-state">
         <i class="ri-key-2-line"></i>
         <h3>需要设置 GitHub Token</h3>
-        <p>请先设置 GitHub Token 来查看日记</p>
+        <p>请先设置 GitHub Token 来查看日常</p>
         <button class="btn btn-primary" onclick="showTokenModal()">
           <i class="ri-key-2-line"></i>
           设置 Token
@@ -113,7 +113,7 @@ async function loadDiary() {
       headers: { Authorization: `token ${token}` }
     });
     if (!res.ok) {
-      throw new Error('无法加载日记');
+      throw new Error('无法加载日常');
     }
     const fileData = await res.json();
     const encryptedContent = atob(fileData.content);
@@ -124,7 +124,7 @@ async function loadDiary() {
     const parsed = parseFrontMatter(decrypted);
 
     if (!parsed) {
-      throw new Error('日记格式不正确');
+      throw new Error('日常格式不正确');
     }
 
     const title = parsed.metadata.title || '无标题';

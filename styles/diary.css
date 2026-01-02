@@ -1,4 +1,4 @@
-/* 日记页面样式 */
+/* 日常页面样式 */
 .diary-feed {
   display: block; /* 覆盖grid布局，让library-container控制布局 */
   gap: 1.5rem;
@@ -20,7 +20,7 @@
   box-shadow: var(--shadow-medium);
 }
 
-/* 日记头部 */
+/* 日常头部 */
 .diary-header {
   display: flex;
   justify-content: space-between;
@@ -90,7 +90,7 @@
   border-color: var(--primary-color);
 }
 
-/* 日记标题 */
+/* 日常标题 */
 .diary-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -99,7 +99,7 @@
   line-height: 1.4;
 }
 
-/* 日记内容 */
+/* 日常内容 */
 .diary-content {
   padding: 0 1.5rem 1.5rem;
   color: var(--text-primary);
@@ -603,7 +603,7 @@
   line-height: 1.5;
 }
 
-/* 日记库导出多选弹窗样式 */
+/* 日常库导出多选弹窗样式 */
 .export-select-modal {
   max-width: 680px;
 }
