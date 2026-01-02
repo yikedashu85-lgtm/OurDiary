@@ -222,21 +222,42 @@ async function loadDiariesFromGitHub() {
 function renderDiaries() {
   diaryList.innerHTML = '';
   
-  if (allDiaries.length === 0) {
-    diaryList.innerHTML = `
+  // 获取搜索关键词
+  const searchInput = document.getElementById('searchInput');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
+  // 过滤日记
+  let filteredDiaries = allDiaries;
+  if (query) {
+    filteredDiaries = allDiaries.filter(diary => {
+      const titleMatch = (diary.title || '').toLowerCase().includes(query);
+      const authorMatch = (diary.author || '').toLowerCase().includes(query);
+      const contentMatch = (diary.content || '').toLowerCase().includes(query);
+      const tagsMatch = (diary.tags || '').toLowerCase().includes(query);
+      return titleMatch || authorMatch || contentMatch || tagsMatch;
+    });
+  }
+  
+  if (filteredDiaries.length === 0) {
+    diaryList.innerHTML = query ? `
+      <div class="empty-state">
+        <i class="ri-search-line"></i>
+        <h3>没有找到匹配的日常</h3>
+        <p>试试其他关键词吧</p>
+      </div>` : `
       <div class="empty-state">
         <i class="ri-book-line"></i>
-        <h3>还没有日记</h3>
-        <p>快去写下第一篇日记吧！</p>
+        <h3>还没有日常</h3>
+        <p>快去写下第一篇日常吧！</p>
         <button class="btn btn-primary" onclick="window.location.href='index.html'">
           <i class="ri-edit-line"></i>
-          写日记
+          写日常
         </button>
       </div>`;
     return;
   }
 
-  allDiaries.forEach((diary, index) => {
+  filteredDiaries.forEach((diary, index) => {
     const card = document.createElement('div');
     card.className = 'diary-card';
     
@@ -271,6 +292,7 @@ function renderDiaries() {
         </div>
       </div>
       <h2 class="diary-title">${diary.title}</h2>
+      ${diary.tags ? `<div class="diary-tags">${diary.tags.split(/[,，\s]+/).filter(Boolean).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
       <div class="diary-content" id="content-${index}" style="display: none;" onclick="event.stopPropagation()">
         ${marked.parse(diary.content)}
       </div>
@@ -706,4 +728,10 @@ function refreshLibrary() {
 window.addEventListener('load', function() {
   loadCommentsData();
   loadDiariesFromGitHub();
+  
+  // 搜索框实时监听
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', renderDiaries);
+  }
 });

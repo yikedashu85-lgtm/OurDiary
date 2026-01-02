@@ -692,3 +692,70 @@
   font-size: 0.875rem;
   color: var(--text-secondary);
 }
+
+/* Tags 样式 */
+.diary-tags {
+  margin: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.diary-tags .tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: rgba(134, 158, 92, 0.12);
+  color: var(--primary-color);
+  border-radius: var(--border-radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.diary-tags .tag:hover {
+  background: rgba(134, 158, 92, 0.20);
+  color: var(--primary-light);
+}
+
+/* 搜索栏样式 */
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.search-input-wrapper {
+  position: relative;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  font-size: 1.25rem;
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: var(--focus-ring);
+}

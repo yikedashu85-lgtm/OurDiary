@@ -285,6 +285,7 @@ function displayDiaries(diaries) {
         </div>
 
         <h2 class="diary-title">${diary.title}</h2>
+        ${diary.tags ? `<div class="diary-tags">${diary.tags.split(/[,，\s]+/).filter(Boolean).map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
         <div class="diary-content">${marked.parse(diary.content || '')}</div>
 
         <div class="diary-comments" id="comments-${safeId}">

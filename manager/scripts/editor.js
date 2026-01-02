@@ -56,6 +56,7 @@ async function loadDiaryForEdit(filename) {
 
     document.getElementById('title').value = metadata.title || '';
     document.getElementById('author').value = metadata.author || '赵涵';
+    document.getElementById('tags').value = metadata.tags || '';
     setCurrentDateTime();
     editor.value = frontMatterMatch[2] || '';
     render();
@@ -159,6 +160,7 @@ function restoreDraft() {
   document.getElementById('title').value = pendingDraftData.title || '';
   document.getElementById('author').value = pendingDraftData.author || '赵涵';
   document.getElementById('date').value = pendingDraftData.date || new Date().toISOString().slice(0,16);
+  document.getElementById('tags').value = pendingDraftData.tags || '';
   editor.value = pendingDraftData.content || '# 写作开始\n在这里写下今天的内容。';
   render();
   pendingDraftData = null;
@@ -245,10 +247,11 @@ async function uploadToGitHub() {
   const title = document.getElementById('title').value;
   const author = document.getElementById('author').value;
   const date = document.getElementById('date').value;
+  const tags = document.getElementById('tags').value;
   const dateStr = date ? date.split('T')[0] : new Date().toISOString().split('T')[0];
   const path = editingFilename ? `posts/${editingFilename}` : `posts/${dateStr}-${author}.md`;
   const content = editor.value;
-  const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\n---\n\n${content}`;
+  const markdown = `---\ntitle: ${title}\nauthor: ${author}\ndate: ${date}\ntags: ${tags}\n---\n\n${content}`;
 
   try {
     // 显示上传状态
@@ -397,6 +400,7 @@ function startAutoSave() {
       title: document.getElementById('title').value,
       author: document.getElementById('author').value,
       date: document.getElementById('date').value,
+      tags: document.getElementById('tags').value,
       content: editor.value
     }));
   }, 30000); // 30秒后自动保存
@@ -410,6 +414,7 @@ editor.addEventListener('input', function() {
 document.getElementById('title').addEventListener('input', startAutoSave);
 document.getElementById('author').addEventListener('change', startAutoSave);
 document.getElementById('date').addEventListener('change', startAutoSave);
+document.getElementById('tags').addEventListener('input', startAutoSave);
 
 // 设置当前日期时间
 function setCurrentDateTime() {
