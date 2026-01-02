@@ -975,7 +975,7 @@ body {
     order: -1;
   }
 
-  /* 日常库导出下拉菜单样式 */
+  /* 日常库导出下拉菜单样式 - 强制覆盖所有其他样式 */
   .diary-actions .export-dropdown {
     position: relative;
   }
@@ -991,8 +991,11 @@ body {
     border-radius: var(--border-radius) !important;
     box-shadow: 0 4px 12px var(--shadow-medium) !important;
     min-width: 150px !important;
-    z-index: 1000 !important;
+    z-index: 1001 !important;
     display: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
   }
 
   .diary-actions .diary-export-menu a {
@@ -1004,6 +1007,8 @@ body {
     text-decoration: none !important;
     transition: background-color 0.2s ease !important;
     font-size: 0.875rem !important;
+    border-bottom: none !important;
+    border-radius: 0 !important;
   }
 
   .diary-actions .diary-export-menu a:hover {
