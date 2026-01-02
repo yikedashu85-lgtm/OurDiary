@@ -707,12 +707,14 @@ function submitComment() {
   const author = document.getElementById('commentAuthor')?.value;
   const content = document.getElementById('commentContent')?.value?.trim();
 
+  console.log('准备发表评论:', { currentDiaryId, author, content });
+
   if (!content) {
-    alert('请输入评论内容');
+    showNotification('请输入评论内容');
     return;
   }
   if (!currentDiaryId) {
-    alert('评论失败，请重试');
+    showNotification('评论失败，请重试');
     return;
   }
 

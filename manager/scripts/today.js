@@ -335,10 +335,10 @@ function hideCommentModal() {
   currentDiaryId = null;
 }
 
-// 提交评论
 function submitComment() {
-  const author = document.getElementById('commentAuthor').value;
-  const content = document.getElementById('commentContent').value.trim();
+  console.log('准备发表评论:', { currentDiaryId, author, content });
+  const author = document.getElementById('commentAuthor')?.value;
+  const content = document.getElementById('commentContent')?.value?.trim();
   
   if (!content) {
     alert('请输入评论内容');
