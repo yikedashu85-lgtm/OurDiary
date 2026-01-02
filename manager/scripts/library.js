@@ -477,11 +477,31 @@ async function loadDiariesFromGitHub() {
         const fileData = await fileResponse.json();
         const encryptedContent = atob(fileData.content);
         
-        // 解码Base64内容（匹配editor.js的编码方式）
-        const decodedContent = unescape(encodeURIComponent(encryptedContent));
+        // 解码Base64内容 - 尝试多种编码方式
+        let decodedContent = encryptedContent;
         
-        // 尝试解密
-        const decryptedContent = decryptContent(decodedContent, keyHash);
+        // 尝试方式1：直接使用（可能不需要额外编码）
+        let decryptedContent = decryptContent(decodedContent, keyHash);
+        if (decryptedContent) {
+          console.log('方式1成功：直接解密');
+        } else {
+          // 尝试方式2：unescape(encodeURIComponent)
+          decodedContent = unescape(encodeURIComponent(encryptedContent));
+          decryptedContent = decryptContent(decodedContent, keyHash);
+          if (decryptedContent) {
+            console.log('方式2成功：unescape(encodeURIComponent)');
+          } else {
+            // 尝试方式3：decodeURIComponent(escape)
+            decodedContent = decodeURIComponent(escape(encryptedContent));
+            decryptedContent = decryptContent(decodedContent, keyHash);
+            if (decryptedContent) {
+              console.log('方式3成功：decodeURIComponent(escape)');
+            } else {
+              console.log('所有方式都失败了');
+              return null;
+            }
+          }
+        }
         if (!decryptedContent) return null; // 跳过无法解密的文件
         
         // 解析 front matter
