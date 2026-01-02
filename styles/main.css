@@ -756,6 +756,21 @@ body {
     display: none;
   }
 
+  /* PC端显示顶部操作按钮 */
+  @media (min-width: 769px) {
+    .header-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .header-actions .btn {
+      flex: none;
+      min-width: auto;
+    }
+  }
+
   /* 移动端表单 */
   .form-row {
     grid-template-columns: 1fr;
@@ -836,7 +851,7 @@ body {
     backdrop-filter: blur(10px);
   }
 
-  /* 移动端操作按钮样式 */
+  /* 移动端操作按钮样式 - 只在移动端显示 */
   .mobile-actions {
     display: flex;
     gap: 0.75rem;
@@ -851,6 +866,13 @@ body {
     flex: 1;
     min-height: 48px;
     font-size: 16px;
+  }
+
+  /* PC端隐藏移动端操作按钮 */
+  @media (min-width: 769px) {
+    .mobile-actions {
+      display: none;
+    }
   }
 
   /* 移动端日常卡片 */
