@@ -27,7 +27,8 @@ function decryptContent(encryptedContent, keyHash) {
     }
     return result;
   } catch(e) {
-    throw new Error('解密失败');
+    console.warn('解密失败，可能文件不是用当前 token 加密的:', e.message);
+    return null;
   }
 }
 
@@ -136,6 +137,7 @@ async function loadTodayDiaries() {
         // 解码Base64内容（匹配index.html的编码方式）
         const decodedContent = decodeURIComponent(escape(encryptedContent));
         const decryptedContent = decryptContent(decodedContent, keyHash);
+        if (!decryptedContent) continue; // 跳过无法解密的文件
         
         // 解析 front matter
         const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
@@ -555,9 +557,11 @@ async function loadCommentsFromGitHub(diaryId) {
       commentsData[diaryId] = comments;
       localStorage.setItem('diary_comments', JSON.stringify(commentsData));
       updateCommentsDisplay(diaryId);
+    } else if (res.status !== 404) {
+      console.error('加载评论失败:', res.status, await res.text());
     }
   } catch (e) {
-    // 文件不存在或解析失败，忽略
+    // 忽略网络或解析错误
   }
 }
 

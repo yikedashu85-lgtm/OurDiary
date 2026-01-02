@@ -105,7 +105,8 @@ function decryptContent(encryptedContent, keyHash) {
     }
     return result;
   } catch(e) {
-    throw new Error('解密失败，请检查 token 是否正确');
+    console.warn('解密失败，可能文件不是用当前 token 加密的:', e.message);
+    return null; // 返回 null 而不是抛出错误
   }
 }
 
@@ -175,6 +176,7 @@ async function loadDiariesFromGitHub() {
         
         // 尝试解密
         const decryptedContent = decryptContent(decodedContent, keyHash);
+        if (!decryptedContent) continue; // 跳过无法解密的文件
         
         // 解析 front matter
         const frontMatterMatch = decryptedContent.match(/^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/);
@@ -860,8 +862,11 @@ async function loadCommentsFromGitHub(diaryId) {
       commentsData[diaryId] = comments;
       persistCommentsData(); // 同步到本地
       updateCommentsDisplay(diaryId);
+    } else if (res.status !== 404) {
+      // 只记录非 404 错误
+      console.error('加载评论失败:', res.status, await res.text());
     }
   } catch (e) {
-    // 文件不存在或解析失败，忽略
+    // 忽略网络或解析错误
   }
 }
