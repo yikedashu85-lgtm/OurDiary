@@ -3,6 +3,7 @@ const owner = "yikedashu85-lgtm";
 const repo = "OurDiary";
 const diaryList = document.getElementById('diary-list');
 let allDiaries = [];
+let diariesByMonth = {}; // 按年月组织的日记数据
 
 let commentsData = {};
 let currentDiaryId = null;
@@ -33,6 +34,269 @@ function toSafeId(input) {
 function getDiaryCommentId(diary) {
   const raw = (diary.filename || '').replace(/\.md$/i, '');
   return toSafeId(raw || `${diary.date}-${diary.author}`);
+}
+
+// 按年月组织日记数据
+function organizeDiariesByMonth(diaries) {
+  const organized = {};
+  
+  diaries.forEach(diary => {
+    const date = new Date(diary.date);
+    const year = date.getFullYear().toString();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    
+    if (!organized[year]) {
+      organized[year] = {};
+    }
+    
+    if (!organized[year][month]) {
+      organized[year][month] = [];
+    }
+    
+    organized[year][month].push(diary);
+  });
+  
+  // 对每个月的日记按日期排序（最新的在前）
+  Object.keys(organized).forEach(year => {
+    Object.keys(organized[year]).forEach(month => {
+      organized[year][month].sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+  });
+  
+  return organized;
+}
+
+// 获取年月统计信息
+function getMonthStatistics() {
+  const stats = {};
+  
+  Object.keys(diariesByMonth).forEach(year => {
+    stats[year] = {};
+    Object.keys(diariesByMonth[year]).forEach(month => {
+      stats[year][month] = diariesByMonth[year][month].length;
+    });
+  });
+  
+  return stats;
+}
+
+// 获取所有年月列表（按时间倒序）
+function getYearMonthList() {
+  const yearMonths = [];
+  
+  Object.keys(diariesByMonth)
+    .sort((a, b) => parseInt(b) - parseInt(a))
+    .forEach(year => {
+      Object.keys(diariesByMonth[year])
+        .sort((a, b) => parseInt(b) - parseInt(a))
+        .forEach(month => {
+          yearMonths.push({
+            year: year,
+            month: month,
+            count: diariesByMonth[year][month].length,
+            label: `${year}年${parseInt(month)}月`
+          });
+        });
+    });
+  
+  return yearMonths;
+}
+
+// 渲染按年月组织的日记库
+function renderLibraryByMonth() {
+  if (Object.keys(diariesByMonth).length === 0) {
+    diaryList.innerHTML = `
+      <div class="empty-state">
+        <i class="ri-book-line"></i>
+        <h3>还没有日记</h3>
+        <p>开始写第一篇日记吧</p>
+        <button class="btn btn-primary" onclick="window.location.href='index.html'">
+          <i class="ri-edit-line"></i>
+          写日常
+        </button>
+      </div>`;
+    return;
+  }
+
+  const yearMonthList = getYearMonthList();
+  const stats = getMonthStatistics();
+  
+  diaryList.innerHTML = `
+    <div class="library-container">
+      <div class="library-sidebar">
+        <div class="sidebar-header">
+          <h3><i class="ri-calendar-line"></i> 时间导航</h3>
+        </div>
+        <div class="year-month-nav">
+          ${renderYearMonthNavigation(yearMonthList)}
+        </div>
+        <div class="library-stats">
+          <h4><i class="ri-bar-chart-line"></i> 统计信息</h4>
+          ${renderStatistics()}
+        </div>
+      </div>
+      <div class="library-content">
+        <div class="content-header">
+          <h2><i class="ri-book-open-line"></i> 日常库</h2>
+          <div class="header-actions">
+            <div class="export-dropdown">
+              <button class="btn btn-secondary" onclick="toggleExportDropdown()">
+                <i class="ri-download-2-line"></i>
+                导出
+                <i class="ri-arrow-down-s-line"></i>
+              </button>
+              <div id="exportDropdown" class="dropdown-menu">
+                <a href="#" onclick="openExportSelection('md'); return false;">
+                  <i class="ri-markdown-line"></i>
+                  导出为 Markdown
+                </a>
+                <a href="#" onclick="openExportSelection('txt'); return false;">
+                  <i class="ri-file-text-line"></i>
+                  导出为文本
+                </a>
+                <a href="#" onclick="openExportSelection('pdf'); return false;">
+                  <i class="ri-file-pdf-line"></i>
+                  导出为 PDF
+                </a>
+              </div>
+            </div>
+            <button class="btn btn-secondary" onclick="refreshLibrary()">
+              <i class="ri-refresh-line"></i>
+              刷新
+            </button>
+          </div>
+        </div>
+        <div class="diary-list">
+          ${renderDiaryListByMonth(yearMonthList)}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// 渲染年月导航
+function renderYearMonthNavigation(yearMonthList) {
+  const yearGroups = {};
+  
+  yearMonthList.forEach(item => {
+    if (!yearGroups[item.year]) {
+      yearGroups[item.year] = [];
+    }
+    yearGroups[item.year].push(item);
+  });
+
+  return Object.keys(yearGroups)
+    .sort((a, b) => parseInt(b) - parseInt(a))
+    .map(year => `
+      <div class="year-group">
+        <div class="year-header" onclick="toggleYear('${year}')">
+          <i class="ri-arrow-down-s-line" id="year-arrow-${year}"></i>
+          <span>${year}年</span>
+          <span class="year-count">(${yearGroups[year].reduce((sum, item) => sum + item.count, 0)}篇)</span>
+        </div>
+        <div class="month-list" id="year-${year}">
+          ${yearGroups[year].map(item => `
+            <div class="month-item" onclick="scrollToMonth('${item.year}-${item.month}')">
+              <span>${parseInt(item.month)}月</span>
+              <span class="month-count">(${item.count}篇)</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+}
+
+// 渲染统计信息
+function renderStatistics() {
+  const totalDiaries = allDiaries.length;
+  const totalWords = allDiaries.reduce((sum, diary) => sum + (diary.content?.length || 0), 0);
+  const authorCounts = {};
+  const tagCounts = {};
+  
+  allDiaries.forEach(diary => {
+    authorCounts[diary.author] = (authorCounts[diary.author] || 0) + 1;
+    if (diary.tags) {
+      diary.tags.split(/[,，\s]+/).forEach(tag => {
+        if (tag.trim()) {
+          tagCounts[tag.trim()] = (tagCounts[tag.trim()] || 0) + 1;
+        }
+      });
+    }
+  });
+  
+  const topAuthor = Object.keys(authorCounts).reduce((a, b) => authorCounts[a] > authorCounts[b] ? a : b, '');
+  const topTag = Object.keys(tagCounts).reduce((a, b) => tagCounts[a] > tagCounts[b] ? a : b, '');
+  const latestDate = allDiaries.length > 0 ? new Date(allDiaries[0].date).toLocaleDateString('zh-CN') : '无';
+  
+  return `
+    <div class="stat-item">
+      <span class="stat-label">总日记数</span>
+      <span class="stat-value">${totalDiaries}篇</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">总字数</span>
+      <span class="stat-value">${Math.round(totalWords / 1000)}k字</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">最活跃</span>
+      <span class="stat-value">${topAuthor}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">最常标签</span>
+      <span class="stat-value">${topTag || '无'}</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">最近更新</span>
+      <span class="stat-value">${latestDate}</span>
+    </div>
+  `;
+}
+
+// 渲染日记列表（按月分组）
+function renderDiaryListByMonth(yearMonthList) {
+  return yearMonthList.map(item => {
+    const diaries = diariesByMonth[item.year][item.month];
+    return `
+      <div class="month-section" id="month-${item.year}-${item.month}">
+        <h3 class="month-title">
+          <i class="ri-calendar-2-line"></i>
+          ${item.label}
+          <span class="month-diary-count">(${diaries.length}篇)</span>
+        </h3>
+        <div class="month-diaries">
+          ${diaries.map(diary => renderDiaryCard(diary)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// 切换年份展开/收起
+function toggleYear(year) {
+  const yearElement = document.getElementById(`year-${year}`);
+  const arrow = document.getElementById(`year-arrow-${year}`);
+  
+  if (yearElement.style.display === 'none') {
+    yearElement.style.display = 'block';
+    arrow.style.transform = 'rotate(0deg)';
+  } else {
+    yearElement.style.display = 'none';
+    arrow.style.transform = 'rotate(-90deg)';
+  }
+}
+
+// 滚动到指定月份
+function scrollToMonth(yearMonth) {
+  const monthElement = document.getElementById(`month-${yearMonth}`);
+  if (monthElement) {
+    monthElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // 高亮效果
+    monthElement.style.backgroundColor = 'rgba(134, 158, 92, 0.1)';
+    setTimeout(() => {
+      monthElement.style.backgroundColor = '';
+    }, 1000);
+  }
 }
 
 function loadCommentsData() {
@@ -222,7 +486,11 @@ async function loadDiariesFromGitHub() {
     // 按日期排序
     allDiaries.sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    renderDiaries();
+    // 按年月组织数据
+    diariesByMonth = organizeDiariesByMonth(allDiaries);
+    
+    // 渲染新的年月界面
+    renderLibraryByMonth();
   } catch(e) {
     diaryList.innerHTML = `
       <div class="error-state">
