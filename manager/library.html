@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日记库 · OurDiary</title>
+  <title>日常库 · OurDiary</title>
   <link rel="stylesheet" href="../styles/main.css">
   <link rel="stylesheet" href="../styles/diary.css">
   <link rel="stylesheet" href="../styles/editor.css">
@@ -38,7 +38,7 @@
         </a>
         <a href="library.html" class="menu-item active">
           <i class="ri-book-line"></i>
-          <span>日记库</span>
+          <span>日常库</span>
         </a>
       </div>
       
@@ -56,8 +56,8 @@
         <!-- 页面标题 -->
         <header class="page-header">
           <div class="header-left">
-            <h1 class="page-title">日记库</h1>
-            <p class="page-subtitle">翻阅所有时光记录</p>
+            <h1 class="page-title">日常库</h1>
+            <p class="page-subtitle">翻阅所有回忆</p>
           </div>
           <div class="header-actions">
             <div class="export-dropdown">
@@ -92,7 +92,7 @@
         <div class="diary-feed" id="diary-list">
           <div class="loading-state">
             <i class="ri-loader-4-line animate-spin"></i>
-            <p>正在加载日记库...</p>
+            <p>正在加载日常库...</p>
           </div>
         </div>
       </div>
@@ -154,7 +154,7 @@
   <div id="exportSelectModal" class="modal">
     <div class="modal-content export-select-modal">
       <div class="modal-header">
-        <h3>📦 选择要导出的日记</h3>
+        <h3>📦 选择要导出的日常</h3>
         <button class="modal-close" onclick="hideExportSelectModal()">
           <i class="ri-close-line"></i>
         </button>
@@ -194,13 +194,13 @@
   <div id="libraryDeleteConfirmModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🗑️ 删除日记</h3>
+        <h3>🗑️ 删除日常</h3>
         <button class="modal-close" onclick="hideLibraryDeleteConfirm()">
           <i class="ri-close-line"></i>
         </button>
       </div>
       <div class="modal-body">
-        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日记吗？删除后将无法恢复。</p>
+        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日常吗？删除后将无法恢复。</p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="hideLibraryDeleteConfirm()">取消</button>

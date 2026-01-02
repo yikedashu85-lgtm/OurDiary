@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>日记预览 · OurDiary</title>
+  <title>日常预览 · OurDiary</title>
   <link rel="stylesheet" href="../styles/main.css">
   <link rel="stylesheet" href="../styles/diary.css">
   <link rel="stylesheet" href="../styles/editor.css">
@@ -36,7 +36,7 @@
         </a>
         <a href="library.html" class="menu-item active">
           <i class="ri-book-line"></i>
-          <span>日记库</span>
+          <span>日常库</span>
         </a>
       </div>
 
@@ -52,7 +52,7 @@
       <div class="content-wrapper">
         <header class="page-header">
           <div class="header-left">
-            <h1 class="page-title" id="previewTitle">日记预览</h1>
+            <h1 class="page-title" id="previewTitle">日常预览</h1>
             <p class="page-subtitle" id="previewMeta"> </p>
           </div>
           <div class="header-actions">
@@ -74,7 +74,7 @@
         <div class="diary-feed" id="previewContainer">
           <div class="loading-state">
             <i class="ri-loader-4-line animate-spin"></i>
-            <p>正在加载日记...</p>
+            <p>正在加载日常...</p>
           </div>
         </div>
       </div>
@@ -103,13 +103,13 @@
   <div id="deleteConfirmModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>🗑️ 删除日记</h3>
+        <h3>🗑️ 删除日常</h3>
         <button class="modal-close" onclick="hideDeleteConfirm()">
           <i class="ri-close-line"></i>
         </button>
       </div>
       <div class="modal-body">
-        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日记吗？删除后将无法恢复。</p>
+        <p style="color: var(--text-secondary); margin: 0;">确认删除这篇日常吗？删除后将无法恢复。</p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="hideDeleteConfirm()">取消</button>
