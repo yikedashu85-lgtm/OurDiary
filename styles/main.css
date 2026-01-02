@@ -750,35 +750,34 @@ body {
     text-align: center;
   }
 
+  /* 移动端隐藏顶部操作按钮 */
   .header-actions {
-    justify-content: stretch;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  .header-actions .btn {
-    flex: 1;
-    min-width: auto;
-  }
-
-  /* 移动端按钮 */
-  .btn {
-    padding: 0.875rem 1rem;
-    font-size: 16px;
-    min-height: 48px;
-    border-radius: 12px;
-  }
-
-  .btn-sm {
-    padding: 0.625rem 0.875rem;
-    font-size: 14px;
-    min-height: 40px;
+    display: none;
   }
 
   /* 移动端表单 */
   .form-row {
     grid-template-columns: 1fr;
     gap: 0.75rem;
+  }
+
+  /* 移动端日期时间布局优化 */
+  .date-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .date-input-group .form-input {
+    flex: 1;
+  }
+
+  .date-input-group .btn-sm {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.875rem 1rem;
+    font-size: 16px;
+    border-radius: 12px;
   }
 
   .form-input,
@@ -802,6 +801,53 @@ body {
 
   .preview-container {
     max-height: 300px;
+  }
+
+  /* 移动端在编辑器底部添加操作按钮 */
+  .editor-form::after {
+    content: '';
+    display: none;
+  }
+
+  .editor-container {
+    position: relative;
+  }
+
+  .editor-container .editor-form {
+    position: relative;
+  }
+
+  /* 移动端浮动操作按钮 */
+  .editor-form::after {
+    content: '';
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    padding: 1rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 0.75rem;
+    margin: 1rem -1rem -1rem;
+    backdrop-filter: blur(10px);
+  }
+
+  /* 移动端操作按钮样式 */
+  .mobile-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    margin: 1rem -1rem -1rem;
+    position: sticky;
+    bottom: 0;
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-actions .btn {
+    flex: 1;
+    min-height: 48px;
+    font-size: 16px;
   }
 
   /* 移动端日常卡片 */

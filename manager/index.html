@@ -153,6 +153,35 @@
             </div>
           </div>
           
+          <!-- 移动端操作按钮 -->
+          <div class="mobile-actions">
+            <div class="export-dropdown">
+              <button class="btn btn-secondary" onclick="toggleExportDropdown()">
+                <i class="ri-download-2-line"></i>
+                导出
+                <i class="ri-arrow-down-s-line"></i>
+              </button>
+              <div id="exportDropdown" class="dropdown-menu">
+                <a href="#" onclick="exportDiary('md'); return false;">
+                  <i class="ri-markdown-line"></i>
+                  Markdown (.md)
+                </a>
+                <a href="#" onclick="exportDiary('txt'); return false;">
+                  <i class="ri-file-text-line"></i>
+                  纯文本 (.txt)
+                </a>
+                <a href="#" onclick="exportDiary('pdf'); return false;">
+                  <i class="ri-file-pdf-line"></i>
+                  PDF (.pdf)
+                </a>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="uploadToGitHub()">
+              <i class="ri-upload-cloud-2-line"></i>
+              保存
+            </button>
+          </div>
+          
           <!-- 预览区域 -->
           <div class="preview-container" id="previewContainer">
             <div class="preview-header">
