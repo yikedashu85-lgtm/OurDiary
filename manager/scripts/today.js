@@ -51,18 +51,15 @@ function todayStr() {
   return `${year}-${month}-${day}`;
 }
 
-// 获取当前时间显示（包含时区信息）
+// 获取当前时间显示（简化格式）
 function getCurrentTimeDisplay() {
   const now = new Date();
-  return now.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZoneName: 'short'
-  });
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  return `${year}/${month}/${day} ${hour}:${minute}`;
 }
 
 // 更新页面标题显示当前日期
