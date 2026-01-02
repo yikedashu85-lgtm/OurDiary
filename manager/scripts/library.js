@@ -126,7 +126,11 @@ function getYearMonthListFromData(data) {
 
 // 渲染按年月组织的日记库
 function renderLibraryByMonth() {
+  console.log('renderLibraryByMonth called');
+  console.log('diariesByMonth:', diariesByMonth);
+  
   if (Object.keys(diariesByMonth).length === 0) {
+    console.log('No diaries found, showing empty state');
     diaryList.innerHTML = `
       <div class="empty-state">
         <i class="ri-book-line"></i>
@@ -140,6 +144,7 @@ function renderLibraryByMonth() {
     return;
   }
 
+  console.log('Diaries found, proceeding with render');
   // 获取搜索关键词
   const searchInput = document.getElementById('searchInput');
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
