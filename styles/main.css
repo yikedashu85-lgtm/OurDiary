@@ -756,7 +756,38 @@ body {
     display: none;
   }
 
-  /* PC端显示顶部操作按钮 */
+  /* 移动端显示内容附近操作按钮 */
+  .mobile-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    margin: 1rem 0;
+    order: 3;
+  }
+
+  .mobile-actions .btn {
+    flex: 1;
+    min-height: 48px;
+    font-size: 16px;
+  }
+
+  .mobile-actions .export-dropdown {
+    position: relative;
+  }
+
+  .mobile-actions .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 0.5rem;
+    z-index: 1000;
+  }
+
+  /* PC端显示顶部按钮，隐藏移动端按钮 */
   @media (min-width: 769px) {
     .header-actions {
       display: flex;
@@ -768,6 +799,10 @@ body {
     .header-actions .btn {
       flex: none;
       min-width: auto;
+    }
+
+    .mobile-actions {
+      display: none;
     }
   }
 
@@ -827,51 +862,6 @@ body {
   .editor-container::after {
     content: '';
     display: none;
-  }
-
-  /* 移动端操作按钮样式 - 只在移动端显示 */
-  .mobile-actions {
-    display: none;
-  }
-
-  /* 移动端显示操作按钮 */
-  @media (max-width: 768px) {
-    .mobile-actions {
-      display: flex;
-      gap: 0.75rem;
-      padding: 1rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      margin: 1rem 0;
-      order: 3;
-    }
-
-    .mobile-actions .btn {
-      flex: 1;
-      min-height: 48px;
-      font-size: 16px;
-    }
-
-    .mobile-actions .export-dropdown {
-      position: relative;
-    }
-
-    .mobile-actions .dropdown-menu {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      margin-top: 0.5rem;
-      z-index: 1000;
-    }
-  }
-
-  /* PC端隐藏移动端操作按钮 */
-  @media (min-width: 769px) {
-    .mobile-actions {
-      display: none;
-    }
   }
 
   /* 移动端日常卡片 */
