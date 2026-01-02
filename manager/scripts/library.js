@@ -443,8 +443,8 @@ async function confirmLibraryDelete() {
 function toggleExportDropdown(index) {
   const dropdown = document.getElementById(`exportDropdown-${index}`);
   if (dropdown) {
-    // 关闭其他所有下拉菜单
-    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+    // 关闭其他所有日常库导出下拉菜单
+    document.querySelectorAll('.diary-export-menu').forEach(menu => {
       if (menu.id !== `exportDropdown-${index}`) {
         menu.style.display = 'none';
       }
