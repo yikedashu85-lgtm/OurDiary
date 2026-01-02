@@ -1,6 +1,6 @@
 /* 日记页面样式 */
 .diary-feed {
-  display: grid;
+  display: block; /* 覆盖grid布局，让library-container控制布局 */
   gap: 1.5rem;
   margin-top: 2rem;
 }
