@@ -264,7 +264,7 @@ function renderYearMonthNavigation(yearMonthList) {
           <span>${year}年</span>
           <span class="year-count">(${yearGroups[year].reduce((sum, item) => sum + item.count, 0)}篇)</span>
         </div>
-        <div class="month-list" id="year-${year}">
+        <div class="month-list expanded" id="year-${year}">
           ${yearGroups[year].map(item => `
             <div class="month-item" onclick="scrollToMonth('${item.year}-${item.month}')">
               <span>${parseInt(item.month)}月</span>
@@ -436,12 +436,12 @@ function toggleYear(year) {
   const yearElement = document.getElementById(`year-${year}`);
   const arrow = document.getElementById(`year-arrow-${year}`);
   
-  if (yearElement.style.display === 'none') {
-    yearElement.style.display = 'block';
+  if (yearElement.classList.contains('expanded')) {
+    yearElement.classList.remove('expanded');
     arrow.style.transform = 'rotate(0deg)';
   } else {
-    yearElement.style.display = 'none';
-    arrow.style.transform = 'rotate(-90deg)';
+    yearElement.classList.add('expanded');
+    arrow.style.transform = 'rotate(90deg)';
   }
 }
 
